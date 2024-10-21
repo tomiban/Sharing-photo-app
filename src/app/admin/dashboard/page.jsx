@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaCheck, FaTrash } from 'react-icons/fa';
-import { supabase } from '../utils/supabaseClient';
+import { supabase } from '../../utils/supabaseClient';
 import { toast } from 'react-toastify';
 const AdminPanel = () => {
   const [uploads, setUploads] = useState([]);

@@ -58,8 +58,6 @@ const LoginForm = () => {
           Iniciar Sesión
         </button>
       </form>
-
-      {testResult && <p className="mt-4 text-sm text-gray-300">{testResult}</p>}
     </div>
   );
 };
