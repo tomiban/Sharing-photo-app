@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaCheck, FaTrash } from 'react-icons/fa';
 import { supabase } from '../utils/supabaseClient';
+import { toast } from 'react-toastify';
 const AdminPanel = () => {
   const [uploads, setUploads] = useState([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -47,8 +47,7 @@ const AdminPanel = () => {
       .order('created_at', { ascending: true });
     console.log(data, error)
     if (error) {
-      console.error('Error al obtener las fotos pendientes:', error);
-      alert('Hubo un problema al obtener las fotos pendientes.');
+      toast.error('Hubo un problema al obtener las fotos pendientes.');
     } else {
       setUploads(data);
     }
@@ -60,12 +59,12 @@ const AdminPanel = () => {
       .from('uploads')
       .update({ approved: true })
       .eq('id', id);
-
+    console.log(id, error); // Asegúrate de revisar el error
     if (error) {
       console.error('Error al aprobar la foto:', error);
-      alert('Hubo un problema al aprobar la foto.');
+      toast.error('Hubo un problema al aprobar la foto!');
     } else {
-      alert('Foto aprobada.');
+      toast.success('Foto aprobada!');
       fetchPendingUploads();
     }
   };
@@ -80,7 +79,7 @@ const AdminPanel = () => {
 
     if (deleteError) {
       console.error('Error al eliminar el registro:', deleteError);
-      alert('Hubo un problema al eliminar la foto.');
+      toast.error('Hubo un problema al eliminar la foto.');
       return;
     }
 
@@ -92,7 +91,7 @@ const AdminPanel = () => {
       console.error('Error al eliminar la imagen:', storageError);
       alert('Hubo un problema al eliminar la imagen.');
     } else {
-      alert('Foto eliminada.');
+      toast.success('Foto eliminada.');
       fetchPendingUploads();
     }
   };
