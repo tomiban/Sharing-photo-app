@@ -79,7 +79,7 @@ const CarouselPage = () => {
       emoji: PARTY_EMOJIS[Math.floor(Math.random() * PARTY_EMOJIS.length)],
       left: `${Math.random() * 100}%`,
       animationDuration: `${2 + Math.random() * 3}s`,
-      size: `${1 + Math.random() * 1.5}rem`
+      size: `${1.5 + Math.random() * 1}rem` // Emojis más pequeños
     };
     setFloatingItems(prevItems => [...prevItems, newItem]);
     setTimeout(() => {
@@ -95,13 +95,18 @@ const CarouselPage = () => {
       if (Math.random() < 0.2) {
         triggerFlash();
       }
-      if (Math.random() < 0.1) {
-        setConfettiActive(true);
-        setTimeout(() => setConfettiActive(false), 5000);
-      }
     }, EFFECT_INTERVAL);
 
-    return () => clearInterval(effectInterval);
+    // Confetti cada 30 segundos
+    const confettiInterval = setInterval(() => {
+      setConfettiActive(true); 
+      setTimeout(() => setConfettiActive(false), 5000); // Confetti dura 5 segundos
+    }, 30000); // Confetti cada 30 segundos
+
+    return () => {
+      clearInterval(effectInterval);
+      clearInterval(confettiInterval);
+    };
   }, [createFloatingItem, triggerFlash]);
 
   if (loading) {
@@ -110,15 +115,18 @@ const CarouselPage = () => {
 
   return (
     <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-b from-purple-600 to-pink-500 p-4 overflow-hidden">
-      <Confetti
-        width={width}
-        height={height}
-        numberOfPieces={confettiActive ? 200 : 0}
-        recycle={false}
-        colors={CONFETTI_COLORS}
-      />
-      <div className="relative">
-        <DeviceFrameset device="iPad Mini" color="silver" zoom={0.8}>
+      <div className="confetti-container">
+        <Confetti
+          width={width}
+          height={height}
+          numberOfPieces={confettiActive ? 200 : 0}
+          recycle={false}
+          colors={CONFETTI_COLORS}
+          confettiSource={{x: 0, y: 0, w: width, h: height}}
+        />
+      </div>
+      <div className="relative z-10">
+        <DeviceFrameset device="iPad Mini" color="silver" zoom={0.7}>
           <Swiper
             spaceBetween={0}
             effect="fade"
@@ -150,7 +158,8 @@ const CarouselPage = () => {
           style={{
             left: item.left,
             animationDuration: item.animationDuration,
-            fontSize: item.size
+            fontSize: item.size,
+            opacity: 0.9 // Más opacidad para ser más visibles
           }}
         >
           {item.emoji}
@@ -162,16 +171,23 @@ const CarouselPage = () => {
       )}
 
       <style jsx>{`
+        .confetti-container {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+        }
         @keyframes floatUp {
-          0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+          0% { transform: translateY(100vh) rotate(0deg); opacity: 0.9; } /* Más opacidad al principio */
+          80% { transform: translateY(-5vh) rotate(360deg); opacity: 0.9; } /* Mantiene opacidad hasta cerca del final */
+          100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } /* Desvanece al final */
         }
         .floating-item {
           position: fixed;
           animation: floatUp linear forwards;
           z-index: 100;
-          text-shadow: 0 0 5px rgba(255,255,255,0.7);
-          filter: drop-shadow(0 0 2px rgba(0,0,0,0.5));
         }
         @keyframes flash {
           0%, 100% { opacity: 0; }
