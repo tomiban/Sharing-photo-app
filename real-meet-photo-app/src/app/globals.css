@@ -1,0 +1,38 @@
+/* styles/globals.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background-color: #111827; /* Dark blue color from the image */
+}
+
+body {
+  font-family: 'Metropolis', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background-color);
+  color: #f0f0f0; /* Light color for better contrast on dark background */
+  min-height: 100vh;
+}
+
+h1, h2 {
+  color: #f0f0f0; /* Light color for headings */
+  text-align: center;
+}
+
+button {
+  cursor: pointer;
+}
+
+textarea {
+  resize: none;
+}
+
+/* Optional: Add styles for better visibility of content on dark background */
+.content-wrapper {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 20px;
+  border-radius: 8px;
+}

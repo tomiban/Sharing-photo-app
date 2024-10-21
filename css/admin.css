@@ -1,0 +1,94 @@
+/* admin.css */
+
+body {
+    font-family: 'Metropolis', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f0f0f0;
+  }
+  
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  
+  h1, h2 {
+    color: #333;
+    text-align: center;
+  }
+  
+  #login-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  #login-form input {
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  #login-form button {
+    padding: 10px 20px;
+    font-size: 16px;
+  }
+  
+  #admin-panel {
+    margin-top: 20px;
+  }
+  
+  #pending-uploads {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .upload-item {
+    width: 300px;
+    margin: 10px;
+    background-color: #fafafa;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  
+  .upload-item img {
+    width: 100%;
+    height: auto;
+  }
+  
+  .upload-item p {
+    padding: 10px;
+    margin: 0;
+  }
+  
+  .upload-item button {
+    width: 50%;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .approve-button {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .delete-button {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .upload-item button:hover {
+    opacity: 0.8;
+  }
+  
