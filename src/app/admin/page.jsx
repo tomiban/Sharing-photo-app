@@ -88,10 +88,9 @@ const AdminPanel = () => {
       .remove([imagePath]);
 
     if (storageError) {
-      console.error('Error al eliminar la imagen:', storageError);
-      alert('Hubo un problema al eliminar la imagen.');
+     toast.error(`Error al eliminar la imagen: ${storageError}`);
     } else {
-      toast.success('Foto eliminada.');
+      toast.info('Foto eliminada.');
       fetchPendingUploads();
     }
   };
