@@ -92,78 +92,81 @@ const UploadPhoto = () => {
   };
 
   return (
-    <div className="w-full h-full flex items-start justify-center py-4">
-      <div className="w-[95%] bg-white/10 backdrop-blur-sm rounded-xl shadow-lg flex flex-col gap-4">
-        {/* Logo */}
-        <div className="flex justify-center pt-6">
-          <Image src="/logo.png" width={60} height={60} alt="Logo" className="w-16 h-16" />
-        </div>
+    <div className="min-h-screen w-full flex items-center justify-center">
+      <div className="w-[95%] min-h-screen bg-white/10 backdrop-blur-sm flex flex-col">
+        {/* Contenido principal con padding igual arriba y abajo */}
+        <div className="flex-1 flex flex-col justify-between py-2">
+          {/* Logo */}
+          <div className="flex justify-center">
+            <Image src="/logo.png" width={60} height={60} alt="Logo" className="w-12 h-12" />
+          </div>
 
-        {/* Input oculto para la cámara */}
-        <input
-          type="file"
-          id="photo-input"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileChange}
-        />
+          {/* Área de foto y comentario */}
+          <div className="flex-1 flex flex-col justify-center gap-3 px-3">
+            <input
+              type="file"
+              id="photo-input"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
 
-        {/* Área de vista previa interactiva */}
-        <div className="mx-4 relative">
-          <button
-            onClick={() => document.getElementById('photo-input').click()}
-            className="w-full aspect-[4/5] bg-white/10 rounded-xl flex items-center justify-center border-2 border-white/20 overflow-hidden hover:bg-white/15 transition-all active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-purple-400"
-          >
-            {preview ? (
-              <>
-                <img
-                  src={preview}
-                  alt="Vista previa"
-                  className="object-cover w-full h-full"
-                />
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleRemovePhoto();
-                  }}
-                  className="absolute top-2 right-2 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-all active:scale-95"
-                  aria-label="Eliminar foto"
-                >
-                  <FaTimes className="text-xl" />
-                </button>
-              </>
-            ) : (
-              <div className="text-center p-8">
-                <FaCamera className="mx-auto text-5xl text-white/70 mb-4" />
-                <p className="text-white/90 text-base font-medium">Toca para tomar una foto</p>
-              </div>
-            )}
-          </button>
-        </div>
+            {/* Área de vista previa */}
+            <div className="relative">
+              <button
+                onClick={() => document.getElementById('photo-input').click()}
+                className="w-full aspect-[4/3] bg-white/10 rounded-xl flex items-center justify-center border-2 border-white/20 overflow-hidden hover:bg-white/15 transition-all active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-purple-400"
+              >
+                {preview ? (
+                  <>
+                    <img
+                      src={preview}
+                      alt="Vista previa"
+                      className="object-cover w-full h-full"
+                    />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemovePhoto();
+                      }}
+                      className="absolute top-2 right-2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-all active:scale-95"
+                      aria-label="Eliminar foto"
+                    >
+                      <FaTimes className="text-lg" />
+                    </button>
+                  </>
+                ) : (
+                  <div className="text-center p-4">
+                    <FaCamera className="mx-auto text-4xl text-white/70 mb-2" />
+                    <p className="text-white/90 text-sm font-medium">Toca para tomar una foto</p>
+                  </div>
+                )}
+              </button>
+            </div>
 
-        {/* Comentario */}
-        <div className="px-4">
-          <textarea
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Agrega un comentario..."
-            className="w-full p-4 bg-white/10 text-white placeholder-white/50 border border-white/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none h-24 text-base"
-          />
-        </div>
+            {/* Comentario */}
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Agrega un comentario..."
+              className="w-full p-3 bg-white/10 text-white placeholder-white/50 border border-white/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none h-16 text-sm"
+            />
+          </div>
 
-        {/* Botón para subir la foto */}
-        <div className="px-4 pb-6">
-          <button
-            onClick={handleUpload}
-            disabled={uploading}
-            className={`w-full py-4 rounded-xl text-white text-base font-semibold transition-all active:scale-98 ${
-              uploading 
-                ? 'bg-gray-500 cursor-not-allowed' 
-                : 'bg-pink-500 hover:bg-pink-600 active:bg-pink-700'
-            }`}
-          >
-            {uploading ? 'Compartiendo...' : 'Compartir foto'}
-          </button>
+          {/* Botón de compartir */}
+          <div className="px-3 pb-2">
+            <button
+              onClick={handleUpload}
+              disabled={uploading}
+              className={`w-full py-3 rounded-xl text-white text-sm font-semibold transition-all active:scale-98 ${
+                uploading 
+                  ? 'bg-gray-500 cursor-not-allowed' 
+                  : 'bg-pink-500 hover:bg-pink-600 active:bg-pink-700'
+              }`}
+            >
+              {uploading ? 'Compartiendo...' : 'Compartir foto'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
