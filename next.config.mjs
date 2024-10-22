@@ -1,7 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['jnujnmneeokpkqpghcoj.supabase.co'], // replace with your Supabase project domain
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'jnujnmneeokpkqpghcoj.supabase.co',
+        pathname: '/**', // Permitir cualquier ruta
+      },
+    ],
   },
   transpilePackages: ['swiper', 'ssr-window', 'dom7'],
 };

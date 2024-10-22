@@ -1,5 +1,5 @@
 "use client"
-import LoginForm from '@/app/components/LoginForm'; // a
+import LoginForm from '@/app/components/LoginForm'; 
 const AdminLogin = () => {
   return (
     <main className="min-h-screen text-gray-100 flex flex-col items-center justify-center p-4">
