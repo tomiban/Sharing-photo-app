@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import imageCompression from 'browser-image-compression';
 import { supabase } from '../utils/supabaseClient';
-import { FaCamera } from 'react-icons/fa';
+import { FaCamera, FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
 
@@ -26,6 +26,9 @@ const UploadPhoto = () => {
         const compressedFile = await imageCompression(selectedFile, options);
         setFile(compressedFile);
         setPreview(URL.createObjectURL(compressedFile));
+        
+        // Feedback visual
+        toast.success('Foto seleccionada correctamente');
       } catch (error) {
         console.error('Error al comprimir la imagen:', error);
         toast.error('Hubo un problema al comprimir la imagen.');
@@ -35,6 +38,15 @@ const UploadPhoto = () => {
       setFile(null);
       setPreview(null);
     }
+  };
+
+  const handleRemovePhoto = () => {
+    setFile(null);
+    setPreview(null);
+    // Limpiar el input file para permitir seleccionar el mismo archivo
+    const input = document.getElementById('photo-input');
+    if (input) input.value = '';
+    toast.info('Foto eliminada');
   };
 
   const handleUpload = async () => {
@@ -82,12 +94,12 @@ const UploadPhoto = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-purple-500 to-indigo-700 flex items-center justify-center p-4">
-      <div className="w-full max-w-md max-h-[1080px] bg-white/10 rounded-lg shadow-md p-6 flex flex-col justify-between items-center overflow-auto">
+    <div className="w-full h-full flex items-start justify-center py-4">
+      <div className="w-[95%] bg-white/10 backdrop-blur-sm rounded-xl shadow-lg flex flex-col gap-4">
         {/* Logo */}
-        <h2 className="text-3xl font-semibold text-white mb-4 text-center">
-          <Image src="/logo.png" width={60} height={60} alt="Logo" />
-        </h2>
+        <div className="flex justify-center pt-6">
+          <Image src="/logo.png" width={60} height={60} alt="Logo" className="w-16 h-16" />
+        </div>
 
         {/* Input para seleccionar foto */}
         <input
@@ -99,46 +111,69 @@ const UploadPhoto = () => {
           onChange={handleFileChange}
         />
 
-        {/* Contenedor de imagen */}
-        <div className="w-full h-64 bg-white/10 rounded-lg flex items-center justify-center mb-4 border-2 border-white/20">
-          {preview ? (
-            <img
-              src={preview}
-              alt="Vista previa"
-              className="object-cover w-full h-full rounded-md"
-            />
-          ) : (
-            <p className="text-white">No hay Foto seleccionada</p>
-          )}
+        {/* Contenedor de imagen más vertical con botón de eliminar */}
+        <div className="mx-4 relative">
+          <div className="w-full aspect-[4/5] bg-white/10 rounded-xl flex items-center justify-center border-2 border-white/20 overflow-hidden">
+            {preview ? (
+              <>
+                <img
+                  src={preview}
+                  alt="Vista previa"
+                  className="object-cover w-full h-full"
+                />
+                <button
+                  onClick={handleRemovePhoto}
+                  className="absolute top-2 right-2 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-all active:scale-95"
+                  aria-label="Eliminar foto"
+                >
+                  <FaTimes className="text-xl" />
+                </button>
+              </>
+            ) : (
+              <div className="text-center p-8">
+                <FaCamera className="mx-auto text-5xl text-white/70 mb-4" />
+                <p className="text-white/90 text-base font-medium">No hay foto seleccionada</p>
+                <p className="text-white/60 text-sm mt-2">Toca para seleccionar</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Botón para seleccionar la foto */}
-        <button
-          className="w-full bg-white/20 hover:bg-white/30 text-white py-3 rounded-full flex items-center justify-center mb-4 transition"
-          onClick={() => document.getElementById('photo-input').click()}
-        >
-          <FaCamera className="mr-2 text-xl" />
-          Selecciona una foto
-        </button>
+        <div className="px-4">
+          <button
+            className="w-full bg-white/20 hover:bg-white/30 active:bg-white/40 text-white py-4 rounded-xl flex items-center justify-center transition-all active:scale-98 text-base font-medium"
+            onClick={() => document.getElementById('photo-input').click()}
+          >
+            <FaCamera className="mr-2 text-xl" />
+            Selecciona una foto
+          </button>
+        </div>
 
         {/* Comentario */}
-        <textarea
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          placeholder="Agrega un comentario..."
-          className="w-full p-3 bg-white/20 text-white border border-white/30 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-purple-300 resize-none"
-        ></textarea>
+        <div className="px-4">
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Agrega un comentario..."
+            className="w-full p-4 bg-white/10 text-white placeholder-white/50 border border-white/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none h-24 text-base"
+          />
+        </div>
 
         {/* Botón para subir la foto */}
-        <button
-          onClick={handleUpload}
-          disabled={uploading}
-          className={`w-full py-3 rounded-md text-white text-lg ${
-            uploading ? 'bg-gray-500 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'
-          } transition`}
-        >
-          {uploading ? 'Compartiendo...' : 'Compartir foto'}
-        </button>
+        <div className="px-4 pb-6">
+          <button
+            onClick={handleUpload}
+            disabled={uploading}
+            className={`w-full py-4 rounded-xl  text-white text-base font-semibold transition-all active:scale-98 ${
+              uploading 
+                ? 'bg-gray-500 cursor-not-allowed' 
+                : 'bg-pink-500 hover:bg-pink-600 active:bg-pink-700'
+            }`}
+          >
+            {uploading ? 'Compartiendo...' : 'Compartir foto'}
+          </button>
+        </div>
       </div>
     </div>
   );
