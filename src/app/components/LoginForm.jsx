@@ -26,7 +26,7 @@ const LoginForm = () => {
       console.error('Error al iniciar sesión:', error);
       setError(error.message);
     } else {
-      router.push('/admin'); // Redirect to admin page after successful login
+      router.push('/admin/dashboard'); 
     }
   };
 

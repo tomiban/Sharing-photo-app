@@ -7,9 +7,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
 }
 
-console.log('Supabase URL:', supabaseUrl);
-console.log('Supabase Anon Key:', supabaseAnonKey);
-
  const supabase = createClientComponentClient({
   supabaseUrl: supabaseUrl,
   supabaseKey: supabaseAnonKey,

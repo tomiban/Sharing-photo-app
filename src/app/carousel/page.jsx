@@ -126,7 +126,7 @@ const CarouselPage = () => {
         />
       </div>
       <div className="relative z-10">
-        <DeviceFrameset device="iPad Mini" color="silver" zoom={0.7}>
+        <DeviceFrameset device="iPad Mini" color="silver" zoom={0.8}>
           <Swiper
             spaceBetween={0}
             effect="fade"
