@@ -1,10 +1,12 @@
 "use client"
+
 import React, { useState } from 'react';
 import imageCompression from 'browser-image-compression';
 import { supabase } from '../utils/supabaseClient';
-import { FaCamera, FaTimes } from 'react-icons/fa';
+import { FaTimes } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import Image from 'next/image';
+import CameraIcon from './CameraIcon';
 
 const UploadPhoto = () => {
   const [file, setFile] = useState(null);
@@ -92,17 +94,28 @@ const UploadPhoto = () => {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center">
-      <div className="w-[95%] min-h-screen bg-white/10 backdrop-blur-sm flex flex-col">
-        {/* Contenido principal con padding igual arriba y abajo */}
-        <div className="flex-1 flex flex-col justify-between py-2">
-          {/* Logo */}
-          <div className="flex justify-center">
-            <Image src="/logo.png" width={60} height={60} alt="Logo" className="w-12 h-12" />
-          </div>
+    <div className="min-h-screen w-full relative">
+      {/* Background image - Optimized for mobile */}
+      <div className="absolute inset-0">
+        <Image 
+          src="/background.jpg"
+          alt="Background"
+          fill
+          className="object-cover object-center"
+          sizes="100vw"
+          priority
+          quality={85}
+        />
+      </div>
+      
+      {/* Purple gradient overlay */}
+      <div className="absolute inset-0 bg-purple-900/50" />
 
-          {/* Área de foto y comentario */}
-          <div className="flex-1 flex flex-col justify-center gap-3 px-3">
+      {/* Content */}
+      <div className="relative w-full px-4 sm:px-6 min-h-screen flex flex-col max-w-lg mx-auto">
+        <div className="flex-1 flex flex-col justify-between py-8">
+          {/* Upload area */}
+          <div className="flex-1 flex flex-col gap-4">
             <input
               type="file"
               id="photo-input"
@@ -111,11 +124,11 @@ const UploadPhoto = () => {
               onChange={handleFileChange}
             />
 
-            {/* Área de vista previa */}
-            <div className="relative">
+            {/* Preview area - Adjusted height */}
+            <div className="relative h-[60vh]"> {/* Aumentado el alto */}
               <button
                 onClick={() => document.getElementById('photo-input').click()}
-                className="w-full aspect-[4/3] bg-white/10 rounded-xl flex items-center justify-center border-2 border-white/20 overflow-hidden hover:bg-white/15 transition-all active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-purple-400"
+                className="w-full h-full bg-purple-800/30 rounded-3xl backdrop-blur-sm border-2 border-purple-300/20 flex flex-col items-center justify-center cursor-pointer overflow-hidden hover:bg-purple-800/40 transition-all"
               >
                 {preview ? (
                   <>
@@ -137,35 +150,48 @@ const UploadPhoto = () => {
                   </>
                 ) : (
                   <div className="text-center p-4">
-                    <FaCamera className="mx-auto text-4xl text-white/70 mb-2" />
-                    <p className="text-white/90 text-sm font-medium">Toca para tomar una foto</p>
+                    <div className='border border-x-2 p-6 rounded-full'>
+                      <CameraIcon  />
+                    </div>
+                   
                   </div>
                 )}
+              <p className="text-purple-200/90 text-sm mt-2">Saca una selfie y compartila con nosotros!</p>
               </button>
             </div>
 
-            {/* Comentario */}
+            {/* Comment input */}
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               placeholder="Agrega un comentario..."
-              className="w-full p-3 bg-white/10 text-white placeholder-white/50 border border-white/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none h-16 text-sm"
+              className="w-full p-4 bg-purple-800/30 text-purple-100 placeholder-purple-300/50 rounded-xl border border-purple-300/20 focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none h-20 backdrop-blur-sm"
             />
           </div>
 
-          {/* Botón de compartir */}
-          <div className="px-3 pb-2">
-            <button
-              onClick={handleUpload}
-              disabled={uploading}
-              className={`w-full py-3 rounded-xl text-white text-sm font-semibold transition-all active:scale-98 ${
-                uploading 
-                  ? 'bg-gray-500 cursor-not-allowed' 
-                  : 'bg-pink-500 hover:bg-pink-600 active:bg-pink-700'
-              }`}
-            >
-              {uploading ? 'Compartiendo...' : 'Compartir foto'}
-            </button>
+          {/* Share button */}
+          <button
+            onClick={handleUpload}
+            disabled={uploading}
+            className={`w-full mt-6 py-4 rounded-xl text-white font-medium transition-all ${
+              uploading 
+                ? 'bg-gray-500 cursor-not-allowed' 
+                : 'bg-pink-600 hover:bg-pink-700 active:bg-pink-800'
+            }`}
+          >
+            {uploading ? 'Compartiendo...' : 'Compartir selfie'}
+          </button>
+
+          {/* Logo at bottom */}
+          <div className="flex justify-center mt-4">
+            <Image 
+              src="/logo-form.png" 
+              width={100} 
+              height={100} 
+              alt="Logo"
+              className="w-24 h-24 object-contain"
+              priority
+            />
           </div>
         </div>
       </div>
