@@ -28,8 +28,6 @@ const UploadPhoto = () => {
         const compressedFile = await imageCompression(selectedFile, options);
         setFile(compressedFile);
         setPreview(URL.createObjectURL(compressedFile));
-        
-        toast.success('Foto seleccionada correctamente');
       } catch (error) {
         console.error('Error al comprimir la imagen:', error);
         toast.error('Hubo un problema al comprimir la imagen.');
@@ -46,7 +44,6 @@ const UploadPhoto = () => {
     setPreview(null);
     const input = document.getElementById('photo-input');
     if (input) input.value = '';
-    toast.info('Foto eliminada');
   };
 
   const handleUpload = async () => {
@@ -94,105 +91,88 @@ const UploadPhoto = () => {
   };
 
   return (
-    <div className="min-h-screen w-full relative">
-      {/* Background image - Optimized for mobile */}
-      <div className="absolute inset-0">
-        <Image 
-          src="/background.jpg"
-          alt="Background"
-          fill
-          className="object-cover object-center"
-          sizes="100vw"
-          priority
-          quality={85}
-        />
+    <div className="h-[100dvh] flex flex-col px-4 max-w-md mx-auto">
+      {/* Top section with logo - reduced margin */}
+      <div className="flex-none flex justify-center mt-3 mb-3">
+        <div className="p-2 rounded-full bg-purple-900/10 backdrop-blur-xs">
+          <Image 
+            src="/logo-form.png" 
+            width={100}
+            height={100}
+            alt="Logo"
+            className="object-contain"
+            priority
+          />
+        </div>
       </div>
-      
-      {/* Purple gradient overlay */}
-      <div className="absolute inset-0 bg-purple-900/50" />
 
-      {/* Content */}
-      <div className="relative w-full px-4 sm:px-6 min-h-screen flex flex-col max-w-lg mx-auto">
-        <div className="flex-1 flex flex-col justify-between py-8">
-          {/* Upload area */}
-          <div className="flex-1 flex flex-col gap-4">
-            <input
-              type="file"
-              id="photo-input"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col gap-3 h-full">
+        <input
+          type="file"
+          id="photo-input"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
 
-            {/* Preview area - Adjusted height */}
-            <div className="relative h-[60vh]"> {/* Aumentado el alto */}
-              <button
-                onClick={() => document.getElementById('photo-input').click()}
-                className="w-full h-full bg-purple-800/30 rounded-3xl backdrop-blur-sm border-2 border-purple-300/20 flex flex-col items-center justify-center cursor-pointer overflow-hidden hover:bg-purple-800/40 transition-all"
-              >
-                {preview ? (
-                  <>
-                    <img
-                      src={preview}
-                      alt="Vista previa"
-                      className="object-cover w-full h-full"
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemovePhoto();
-                      }}
-                      className="absolute top-2 right-2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-all active:scale-95"
-                      aria-label="Eliminar foto"
-                    >
-                      <FaTimes className="text-lg" />
-                    </button>
-                  </>
-                ) : (
-                  <div className="text-center p-4">
-                    <div className='border border-x-2 p-6 rounded-full'>
-                      <CameraIcon  />
-                    </div>
-                   
-                  </div>
-                )}
-              <p className="text-purple-200/90 text-sm mt-2">Saca una selfie y compartila con nosotros!</p>
-              </button>
-            </div>
+        {/* Image preview/upload area - adjusted height */}
+        <div className="relative flex-1 max-h-[68%]">
+          <button
+            onClick={() => document.getElementById('photo-input').click()}
+            className="w-full h-full bg-purple-800/20 rounded-3xl backdrop-blur-md border border-white/10 flex flex-col items-center justify-center overflow-hidden transition-all hover:bg-purple-800/30 hover:border-white/20 shadow-lg"
+          >
+            {preview ? (
+              <>
+                <img
+                  src={preview}
+                  alt="Vista previa"
+                  className="object-cover w-full h-full rounded-3xl"
+                />
+                <button
+                  onClick={handleRemovePhoto}
+                  className="absolute top-3 right-3 w-9 h-9 bg-black/50 backdrop-blur-md hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-all border border-white/10"
+                  aria-label="Eliminar foto"
+                >
+                  <FaTimes className="text-lg" />
+                </button>
+              </>
+            ) : (
+              <div className="text-center p-4 space-y-2">
+                <div className="inline-block border border-white/20 p-4 rounded-full backdrop-blur-md bg-purple-800/20">
+                  <CameraIcon className="w-6 h-6 text-white" />
+                </div>
+                <p className="text-white/90 text-sm px-3 font-medium">
+                  Saca una selfie y compartila con nosotros!
+                </p>
+              </div>
+            )}
+          </button>
+        </div>
 
-            {/* Comment input */}
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="Agrega un comentario..."
-              className="w-full p-4 bg-purple-800/30 text-purple-100 placeholder-purple-300/50 rounded-xl border border-purple-300/20 focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none h-20 backdrop-blur-sm"
-            />
-          </div>
+        {/* Comment input - reduced height */}
+        <div className="flex-none h-[15%]">
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Agrega un comentario..."
+            className="w-full h-full p-3 bg-purple-800/20 text-white placeholder-white/50 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/25 resize-none backdrop-blur-md shadow-lg transition-all hover:bg-purple-800/30"
+          />
+        </div>
 
-          {/* Share button */}
+        {/* Share button - adjusted padding and margin */}
+        <div className="flex-none mb-4">
           <button
             onClick={handleUpload}
             disabled={uploading}
-            className={`w-full mt-6 py-4 rounded-xl text-white font-medium transition-all ${
+            className={`w-full py-3 rounded-xl text-white font-medium transition-all shadow-lg border border-white/10 backdrop-blur-md ${
               uploading 
-                ? 'bg-gray-500 cursor-not-allowed' 
-                : 'bg-pink-600 hover:bg-pink-700 active:bg-pink-800'
+                ? 'bg-gray-500/50 cursor-not-allowed' 
+                : 'bg-pink-600/80 hover:bg-pink-600/90 active:bg-pink-700/90'
             }`}
           >
             {uploading ? 'Compartiendo...' : 'Compartir selfie'}
           </button>
-
-          {/* Logo at bottom */}
-          <div className="flex justify-center mt-4">
-            <Image 
-              src="/logo-form.png" 
-              width={100} 
-              height={100} 
-              alt="Logo"
-              className="w-24 h-24 object-contain"
-              priority
-            />
-          </div>
         </div>
       </div>
     </div>
