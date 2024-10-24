@@ -93,8 +93,8 @@ const UploadPhoto = () => {
   return (
     <div className="h-[100dvh] flex flex-col px-4 max-w-md mx-auto">
       {/* Top section with logo - reduced margin */}
-      <div className="flex-none flex justify-center mt-3 mb-3">
-        <div className="p-2 rounded-full bg-purple-900/10 backdrop-blur-xs">
+      <div className="flex-none flex justify-center">
+        <div className="p-2 rounded-full">
           <Image 
             src="/logo-form.png" 
             width={100}
@@ -117,18 +117,20 @@ const UploadPhoto = () => {
         />
 
         {/* Image preview/upload area - adjusted height */}
-        <div className="relative flex-1 max-h-[68%]">
+        <div className="relative flex-1 max-h-[72%]">
           <button
             onClick={() => document.getElementById('photo-input').click()}
             className="w-full h-full bg-purple-800/20 rounded-3xl backdrop-blur-md border border-white/10 flex flex-col items-center justify-center overflow-hidden transition-all hover:bg-purple-800/30 hover:border-white/20 shadow-lg"
           >
             {preview ? (
               <>
-                <img
-                  src={preview}
-                  alt="Vista previa"
-                  className="object-cover w-full h-full rounded-3xl"
-                />
+                   <div className="w-full h-full aspect-[4/3]">  {/* Relación de aspecto 4:3 */}
+          <img
+            src={preview}
+            alt="Vista previa"
+            className="object-cover w-full h-full rounded-3xl"
+          />
+        </div>
                 <button
                   onClick={handleRemovePhoto}
                   className="absolute top-3 right-3 w-9 h-9 bg-black/50 backdrop-blur-md hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-all border border-white/10"
@@ -151,7 +153,7 @@ const UploadPhoto = () => {
         </div>
 
         {/* Comment input - reduced height */}
-        <div className="flex-none h-[15%]">
+        <div className="flex-none h-[12%]">
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
