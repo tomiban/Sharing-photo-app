@@ -120,20 +120,20 @@ const UploadPhoto = () => {
         <div className="relative flex-1 max-h-[72%]">
           <button
             onClick={() => document.getElementById('photo-input').click()}
-            className="w-full h-full bg-purple-800/20 rounded-3xl backdrop-blur-md border border-white/10 flex flex-col items-center justify-center overflow-hidden transition-all hover:bg-purple-800/30 hover:border-white/20 shadow-lg"
+            className="w-full h-full bg-purple-800/20 rounded-3xl  backdrop-blur-md border border-white/10 flex flex-col items-center justify-center overflow-hidden transition-all hover:bg-purple-800/30 hover:border-white/20 shadow-lg active:scale-95" // Escala al presionar
           >
             {preview ? (
               <>
-                   <div className="w-full h-full aspect-[4/3]">  {/* Relación de aspecto 4:3 */}
-          <img
-            src={preview}
-            alt="Vista previa"
-            className="object-cover w-full h-full rounded-3xl"
-          />
-        </div>
+                <div className="w-full h-full aspect-[4/3]">
+                  <img
+                    src={preview}
+                    alt="Vista previa"
+                    className="object-cover w-full h-full rounded-3xl transition-transform duration-300 ease-in-out hover:scale-105" // Transición de escala al hacer hover
+                  />
+                </div>
                 <button
                   onClick={handleRemovePhoto}
-                  className="absolute top-3 right-3 w-9 h-9 bg-black/50 backdrop-blur-md hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-all border border-white/10"
+                  className="absolute top-3 right-3 w-9 h-9 bg-black/50 hover:bg-black/70 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-all border border-white/10"
                   aria-label="Eliminar foto"
                 >
                   <FaTimes className="text-lg" />
@@ -141,7 +141,7 @@ const UploadPhoto = () => {
               </>
             ) : (
               <div className="text-center p-4 space-y-2">
-                <div className="inline-block border border-white/20 p-4 rounded-full backdrop-blur-md bg-purple-800/20">
+                <div className="inline-block border border-white/20 p-4 rounded-full bg-purple-800/20 animate-pulse"> {/* Animación de pulso */}
                   <CameraIcon className="w-6 h-6 text-white" />
                 </div>
                 <p className="text-white/90 text-sm px-3 font-medium">
@@ -158,7 +158,7 @@ const UploadPhoto = () => {
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Agrega un comentario..."
-            className="w-full h-full p-3 bg-purple-800/20 text-white placeholder-white/50 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/25 resize-none backdrop-blur-md shadow-lg transition-all hover:bg-purple-800/30"
+            className="w-full h-full p-3 bg-purple-800/20 backdrop-blur-md text-white placeholder-white/50 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/25 transition-all hover:bg-purple-800/30 focus:bg-purple-800/30" // Hover y Focus transitions
           />
         </div>
 
@@ -167,10 +167,10 @@ const UploadPhoto = () => {
           <button
             onClick={handleUpload}
             disabled={uploading}
-            className={`w-full py-3 rounded-xl text-white font-medium transition-all shadow-lg border border-white/10 backdrop-blur-md ${
+            className={`w-full py-3 rounded-xl text-white font-medium transition-all shadow-lg border border-white/10 active:scale-95 ${ // Escala al presionar
               uploading 
                 ? 'bg-gray-500/50 cursor-not-allowed' 
-                : 'bg-pink-600/80 hover:bg-pink-600/90 active:bg-pink-700/90'
+                : 'bg-pink-600 hover:bg-pink-700 active:bg-pink-700'
             }`}
           >
             {uploading ? 'Compartiendo...' : 'Compartir selfie'}

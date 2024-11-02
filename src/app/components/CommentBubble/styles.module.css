@@ -1,0 +1,134 @@
+.commentBubble {
+    position: fixed;
+    left: 2rem;
+    top: 35%;
+    width: 350px;
+    z-index: 50;
+}
+
+/* Efecto de flotación continua */
+.floating {
+    animation: float 6s ease-in-out infinite;
+}
+
+.bubbleContent {
+    position: relative;
+    padding: 1.5rem;
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    overflow: hidden;
+    transition: all 0.4s ease;
+    background: linear-gradient(
+        135deg, 
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(255, 255, 255, 0.03) 100%
+    );
+    backdrop-filter: blur(12px);
+    box-shadow: 
+        0 4px 24px -1px rgba(0, 0, 0, 0.2),
+        0 0 16px -2px rgba(0, 0, 0, 0.1),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* Efecto de destello */
+.glow {
+    animation: glowPulse 1s ease-in-out;
+}
+
+.commentText {
+    position: relative;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.95);
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    font-weight: 500;
+    line-height: 1.75;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+
+/* Animaciones */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes glowPulse {
+    0% {
+        box-shadow: 
+            0 4px 24px -1px rgba(0, 0, 0, 0.2),
+            0 0 16px -2px rgba(0, 0, 0, 0.1),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+    50% {
+        box-shadow: 
+            0 4px 24px -1px rgba(255, 255, 255, 0.3),
+            0 0 30px -2px rgba(255, 255, 255, 0.2),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+    100% {
+        box-shadow: 
+            0 4px 24px -1px rgba(0, 0, 0, 0.2),
+            0 0 16px -2px rgba(0, 0, 0, 0.1),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+}
+
+.fadeIn {
+    animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+.fadeOut {
+    animation: fadeOut 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+/* Mantener los media queries como estaban */
+@media (max-width: 1200px) {
+    .commentBubble {
+        bottom: 2rem;
+        top: auto;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(90%, 400px);
+    }
+    
+    .floating {
+        animation: floatHorizontal 6s ease-in-out infinite;
+    }
+}
+
+/* Animación horizontal para móviles */
+@keyframes floatHorizontal {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0);
+    }
+    50% {
+        transform: translateX(-50%) translateY(-5px);
+    }
+}

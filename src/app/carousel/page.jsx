@@ -1,64 +1,112 @@
 "use client";
 import React, { useEffect, useState, useCallback } from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay, EffectFade } from "swiper/modules";
+import { useWindowSize } from "@react-hook/window-size";
+import { FaExpand, FaCompress } from "react-icons/fa";
+import Confetti from "react-confetti";
+import { supabase } from "@/app/utils/supabaseClient";
+import DeviceCarousel from "@/app/components/DeviceCarousel/DeviceCarousel";
+import CommentBubble from "@/app/components/CommentBubble/CommentBubble";
+import QRCode from "@/app/components/QRCode";
+import { DEVICE_CONFIGS } from "@/app/components/DeviceCarousel/config";
+import styles from "./styles.module.css";
 import Image from "next/image";
-import { supabase } from "../utils/supabaseClient";
-import { DeviceFrameset } from "react-device-frameset";
-import "swiper/css";
-import "swiper/css/autoplay";
-import "swiper/css/effect-fade";
-import "react-device-frameset/styles/marvel-devices.min.css";
-import Confetti from 'react-confetti';
-import { useWindowSize } from '@react-hook/window-size';
 
-const POLL_INTERVAL = 60000; // 60 segundos
-const EFFECT_INTERVAL = 1000; // 1 segundo
-
+const POLL_INTERVAL = 60000;
+const EFFECT_INTERVAL = 1000;
 const PARTY_EMOJIS = [
-  '❤️', '🧡', '💛', '💚', '💙', '💜',
-  '🎉', '🎊', '🎈', '🥳', '😎', '🕺', '💃', '🍾', '🥂',
-  '🌟', '✨', '💫', '🔥', '👏', '🙌', '🤩', '😍'
+  "❤️",
+  "🧡",
+  "💛",
+  "💚",
+  "💙",
+  "💜",
+  "🎉",
+  "🎊",
+  "🎈",
+  "🥳",
 ];
+const CONFETTI_COLORS = ["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5"];
 
-const CONFETTI_COLORS = [
-  '#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5',
-  '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4CAF50',
-  '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800',
-  '#FF5722', '#795548'
-];
-
-const CarouselPage = () => {
+export default function CarouselPage() {
   const [width, height] = useWindowSize();
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showFlash, setShowFlash] = useState(false);
   const [floatingItems, setFloatingItems] = useState([]);
   const [confettiActive, setConfettiActive] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState("iPadMini");
+  const [currentComment, setCurrentComment] = useState("");
 
-  const fetchApprovedPhotos = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("uploads")
-      .select("*")
-      .eq("approved", true)
-      .order("created_at", { ascending: false });
-    if (error) {
-      console.error("Error al obtener las fotos aprobadas:", error);
-    } else {
-      setPhotos(data);
+  // Deshabilitar scroll y manejar fullscreen
+  useEffect(() => {
+    const disableScroll = () => {
+      document.documentElement.style.cssText = `
+        overflow: hidden !important;
+        height: 100vh;
+        width: 100vw;
+        position: fixed;
+        touch-action: none;
+        -webkit-overflow-scrolling: none;
+        overscroll-behavior: none;
+        margin: 0;
+        padding: 0;
+      `;
+      document.body.style.cssText = document.documentElement.style.cssText;
+    };
+
+    const enableScroll = () => {
+      document.documentElement.style.cssText = "";
+      document.body.style.cssText = "";
+    };
+
+    disableScroll();
+
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+
+    return () => {
+      enableScroll();
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  // Fetch de fotos y suscripción a cambios
+  const fetchPhotos = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("uploads")
+        .select("*")
+        .eq("approved", true)
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setPhotos(data || []);
+    } catch (error) {
+      console.error("Error fetching photos:", error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
-    fetchApprovedPhotos();
-    const pollInterval = setInterval(fetchApprovedPhotos, POLL_INTERVAL);
+    fetchPhotos();
+    const pollInterval = setInterval(fetchPhotos, POLL_INTERVAL);
+
     const channel = supabase
       .channel("public:uploads")
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "uploads", filter: "approved=eq.true" },
-        fetchApprovedPhotos
+        {
+          event: "*",
+          schema: "public",
+          table: "uploads",
+          filter: "approved=eq.true",
+        },
+        fetchPhotos
       )
       .subscribe();
 
@@ -66,8 +114,9 @@ const CarouselPage = () => {
       clearInterval(pollInterval);
       supabase.removeChannel(channel);
     };
-  }, [fetchApprovedPhotos]);
+  }, [fetchPhotos]);
 
+  // Efectos visuales
   const triggerFlash = useCallback(() => {
     setShowFlash(true);
     setTimeout(() => setShowFlash(false), 200);
@@ -79,29 +128,68 @@ const CarouselPage = () => {
       emoji: PARTY_EMOJIS[Math.floor(Math.random() * PARTY_EMOJIS.length)],
       left: `${Math.random() * 100}%`,
       animationDuration: `${2 + Math.random() * 3}s`,
-      size: `${1.5 + Math.random() * 1}rem` // Emojis más pequeños
+      size: `${1.5 + Math.random() * 1}rem`,
     };
-    setFloatingItems(prevItems => [...prevItems, newItem]);
+
+    setFloatingItems((prev) => [...prev, newItem]);
     setTimeout(() => {
-      setFloatingItems(prevItems => prevItems.filter(item => item.id !== newItem.id));
+      setFloatingItems((prev) => prev.filter((item) => item.id !== newItem.id));
     }, parseFloat(newItem.animationDuration) * 1000);
   }, []);
 
   useEffect(() => {
+    fetchPhotos(); // Fetch inicial
+  
+    // Configuración del canal de tiempo real
+    const channel = supabase
+      .channel('upload-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Escucha todos los eventos (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'uploads',
+          filter: 'approved=eq.true'
+        },
+        (payload) => {
+          console.log('Cambio detectado:', payload);
+          // Actualizar fotos según el tipo de cambio
+          if (payload.eventType === 'INSERT') {
+            setPhotos(prev => [payload.new, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setPhotos(prev => 
+              prev.map(photo => 
+                photo.id === payload.new.id ? payload.new : photo
+              )
+            );
+          } else if (payload.eventType === 'DELETE') {
+            setPhotos(prev => 
+              prev.filter(photo => photo.id !== payload.old.id)
+            );
+          }
+        }
+      )
+      .subscribe();
+  
+    // Polling como respaldo
+    const pollInterval = setInterval(fetchPhotos, POLL_INTERVAL);
+  
+    return () => {
+      clearInterval(pollInterval);
+      supabase.removeChannel(channel);
+    };
+  }, [fetchPhotos]);
+
+  useEffect(() => {
     const effectInterval = setInterval(() => {
-      if (Math.random() < 0.8) {
-        createFloatingItem();
-      }
-      if (Math.random() < 0.2) {
-        triggerFlash();
-      }
+      if (Math.random() < 0.8) createFloatingItem();
+      if (Math.random() < 0.2) triggerFlash();
     }, EFFECT_INTERVAL);
 
-    // Confetti cada 30 segundos
     const confettiInterval = setInterval(() => {
-      setConfettiActive(true); 
-      setTimeout(() => setConfettiActive(false), 5000); // Confetti dura 5 segundos
-    }, 30000); // Confetti cada 30 segundos
+      setConfettiActive(true);
+      setTimeout(() => setConfettiActive(false), 5000);
+    }, 30000);
 
     return () => {
       clearInterval(effectInterval);
@@ -109,96 +197,131 @@ const CarouselPage = () => {
     };
   }, [createFloatingItem, triggerFlash]);
 
+
+  // Toggle fullscreen
+  const toggleFullscreen = async () => {
+    try {
+      if (!isFullscreen) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      console.error("Error toggling fullscreen:", error);
+    }
+  };
+
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className={styles.container}>
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white" />
+      </div>
+    );
   }
 
+  const handleSlideChange = (currentIndex) => {
+    setCurrentComment(photos[currentIndex]?.comment || "");
+  };
+
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-b from-purple-600 to-pink-500 p-4 overflow-hidden">
-      <div className="confetti-container">
-        <Confetti
-          width={width}
-          height={height}
-          numberOfPieces={confettiActive ? 200 : 0}
-          recycle={false}
-          colors={CONFETTI_COLORS}
-          confettiSource={{x: 0, y: 0, w: width, h: height}}
+    <div className={styles.container}>
+      {/* Logo */}
+      <div className={styles.logoContainer}>
+        <Image
+          src="/logo-form.png" // Ajusta la ruta según donde guardes el logo
+          alt="Real Meet 2024"
+          width={200}
+          height={60}
+          priority
         />
       </div>
-      <div className="relative z-10">
-        <DeviceFrameset device="iPad Mini" color="silver" zoom={0.8}>
-          <Swiper
-            spaceBetween={0}
-            effect="fade"
-            autoplay={{ delay: 5000, disableOnInteraction: false }}
-            modules={[Autoplay, EffectFade]}
-            className="w-full h-full"
-          >
-            {photos.map((photo) => (
-              <SwiperSlide key={photo.id}>
-                <div className="relative w-full h-full">
-                  <Image
-                    src={photo.image_url}
-                    alt="Foto"
-                    fill
-                    style={{ objectFit: "cover" }}
-                    priority
-                  />
-                </div>
-              </SwiperSlide>
-            ))}
-          </Swiper>
-        </DeviceFrameset>
+      <CommentBubble  comment={currentComment} />
+      {/* Efectos de fondo */}
+      <div className={styles.backgroundEffects}>
+        <div className={styles.ambientEffect} />
+        <div className={styles.starLayer1} />
+        <div className={styles.starLayer2} />
+        <div
+          className={styles.brightStar}
+          style={{ top: "15%", left: "20%" }}
+        />
+        <div
+          className={styles.brightStar}
+          style={{ top: "25%", right: "30%" }}
+        />
+        <div
+          className={styles.brightStar}
+          style={{ bottom: "30%", left: "25%" }}
+        />
+        <div
+          className={styles.brightStar}
+          style={{ bottom: "20%", right: "15%" }}
+        />
       </div>
 
-      {floatingItems.map(item => (
+      <Confetti
+        width={width}
+        height={height}
+        numberOfPieces={confettiActive ? 200 : 0}
+        colors={CONFETTI_COLORS}
+        recycle={false}
+      />
+
+      {floatingItems.map((item) => (
         <div
           key={item.id}
-          className="floating-item"
+          className={styles.floatingItem}
           style={{
             left: item.left,
             animationDuration: item.animationDuration,
             fontSize: item.size,
-            opacity: 0.9 // Más opacidad para ser más visibles
           }}
         >
           {item.emoji}
         </div>
       ))}
 
-      {showFlash && (
-        <div className="absolute inset-0 bg-white animate-flash z-50"></div>
-      )}
+      <main className={styles.mainContent}>
+        <div className={styles.carouselLayout}>
+          <div className={styles.deviceWrapper}>
+          <DeviceCarousel
+  photos={photos}
+  deviceConfig={DEVICE_CONFIGS[selectedDevice]}
+  isFullscreen={isFullscreen}
+  width={width}
+  height={height}
+  onSlideChange={(swiper) => handleSlideChange(swiper.realIndex)}
+/>
 
-      <style jsx>{`
-        .confetti-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          pointer-events: none;
-        }
-        @keyframes floatUp {
-          0% { transform: translateY(100vh) rotate(0deg); opacity: 0.9; } /* Más opacidad al principio */
-          80% { transform: translateY(-5vh) rotate(360deg); opacity: 0.9; } /* Mantiene opacidad hasta cerca del final */
-          100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; } /* Desvanece al final */
-        }
-        .floating-item {
-          position: fixed;
-          animation: floatUp linear forwards;
-          z-index: 100;
-        }
-        @keyframes flash {
-          0%, 100% { opacity: 0; }
-          50% { opacity: 1; }
-        }
-        .animate-flash {
-          animation: flash 0.2s;
-        }
-      `}</style>
+            {/* Elimina la burbuja de comentario de aquí ya que ahora está en DeviceCarousel */}
+          </div>
+        </div>
+      </main>
+      <div className="fixed bottom-8 right-8 z-50">
+        <Image
+          src="/logo-blanco.png"
+          alt="Logo empresa"
+          width={200}
+          height={120}
+          className="object-contain opacity-90 hover:opacity-100 transition-opacity"
+          priority
+        />
+      </div>
+      {/* Botón de fullscreen reposicionado */}
+      <button
+        onClick={toggleFullscreen}
+        className="fixed top-4 right-4 w-10 h-10 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-full shadow-xl border border-white/50 transition-all duration-300 z-50"
+        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+      >
+        {isFullscreen ? <FaCompress size={18} /> : <FaExpand size={18} />}
+      </button>
+
+      <div className="fixed top-20 right-24 z-50">
+        <QRCode
+          url={process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}
+        />
+      </div>
+      {showFlash && <div className={styles.flash} />}
     </div>
   );
-};
-
-export default CarouselPage;
+}
