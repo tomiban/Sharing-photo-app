@@ -26,23 +26,25 @@ SECCIÓN: COMPONENTS
 
 
 ### Archivo: src\app\components\AdminPanel.jsx ###
+# Client Component
 --------------------------------------------------------------------------------
-// src/components/AdminPanel.js
-
+"use client"
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../utils/supabaseClient';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
+import { FaCheck, FaTrash, FaCog, FaImages } from 'react-icons/fa';
+import { supabase } from '../../utils/supabaseClient';
+import { toast } from 'react-toastify';
+import CarouselSettings from '@/app/components/CarouselSettings';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 
 const AdminPanel = () => {
   const [uploads, setUploads] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [authUser, setAuthUser] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
     const fetchSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setAuthUser(session?.user ?? null);
       if (session) {
         fetchPendingUploads();
       } else {
@@ -54,7 +56,6 @@ const AdminPanel = () => {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setAuthUser(session?.user ?? null);
         if (session) {
           fetchPendingUploads();
         } else {
@@ -77,10 +78,8 @@ const AdminPanel = () => {
       .eq('approved', false)
       .order('created_at', { ascending: true });
 
- 
     if (error) {
-      console.error('Error al obtener las fotos pendientes:', error);
-      alert('Hubo un problema al obtener las fotos pendientes.');
+      toast.error('Error al obtener las fotos pendientes');
     } else {
       setUploads(data);
     }
@@ -94,40 +93,34 @@ const AdminPanel = () => {
       .eq('id', id);
 
     if (error) {
-      console.error('Error al aprobar la foto:', error);
-      alert('Hubo un problema al aprobar la foto.');
+      toast.error('Error al aprobar la foto');
     } else {
-      alert('Foto aprobada.');
+      toast.success('Foto aprobada exitosamente');
       fetchPendingUploads();
     }
   };
 
   const deleteUpload = async (id, image_url) => {
-    // Extraer el path de la URL de la imagen
     const imagePath = image_url.split('/storage/v1/object/public/photos/')[1];
 
-    // Eliminar el registro de la base de datos
     const { error: deleteError } = await supabase
       .from('uploads')
       .delete()
       .eq('id', id);
 
     if (deleteError) {
-      console.error('Error al eliminar el registro:', deleteError);
-      alert('Hubo un problema al eliminar la foto.');
+      toast.error('Error al eliminar el registro');
       return;
     }
 
-    // Eliminar la imagen del almacenamiento
     const { error: storageError } = await supabase.storage
       .from('photos')
       .remove([imagePath]);
 
     if (storageError) {
-      console.error('Error al eliminar la imagen:', storageError);
-      alert('Hubo un problema al eliminar la imagen.');
+      toast.error('Error al eliminar la imagen');
     } else {
-      alert('Foto eliminada.');
+      toast.success('Foto eliminada exitosamente');
       fetchPendingUploads();
     }
   };
@@ -137,47 +130,76 @@ const AdminPanel = () => {
     router.push('/admin/login');
   };
 
-  if (!authUser) {
-    return null; // Mientras se redirige, no renderizar nada
-  }
-
   return (
-    <div className={styles.adminContainer}>
-      <h2>Panel de Administración</h2>
-      <button onClick={handleLogout} className={styles.logoutButton}>
-        Cerrar Sesión
-      </button>
-      {loading ? (
-        <p>Cargando fotos pendientes...</p>
-      ) : uploads.length === 0 ? (
-        <p>No hay fotos pendientes de aprobación.</p>
-      ) : (
-        <div className={styles.uploadsList}>
-          {uploads.map((upload) => (
-            <div key={upload.id} className={styles.uploadItem}>
-              <img src={upload.image_url} alt="Foto pendiente" />
-              <p>{upload.comment || 'Sin comentario'}</p>
-              <div className={styles.actions}>
-                <button onClick={() => approveUpload(upload.id)} className={styles.approveButton}>
-                  Aprobar
-                </button>
-                <button
-                  onClick={() => deleteUpload(upload.id, upload.image_url)}
-                  className={styles.deleteButton}
-                >
-                  Eliminar
-                </button>
-              </div>
-            </div>
-          ))}
+    <main className="min-h-screen text-gray-100 flex flex-col items-center justify-start p-4">
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Panel de Administración</h1>
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition"
+          >
+            Cerrar Sesión
+          </button>
         </div>
-      )}
-    </div>
+
+        <Tabs defaultValue="photos" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-700">
+            <TabsTrigger value="photos" className="flex items-center gap-2 data-[state=active]:bg-gray-600">
+              <FaImages />
+              Fotos Pendientes
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-gray-600">
+              <FaCog />
+              Configuración
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="photos" className="bg-gray-800 rounded-lg shadow-md p-6">
+            {loading ? (
+              <p className="text-center">Cargando fotos pendientes...</p>
+            ) : uploads.length === 0 ? (
+              <p className="text-center">No hay fotos pendientes de aprobación.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {uploads.map((upload) => (
+                  <div key={upload.id} className="bg-gray-700 rounded-lg overflow-hidden">
+                    <img src={upload.image_url} alt="Foto pendiente" className="w-full h-48 object-cover" />
+                    <div className="p-4">
+                      <p className="mb-4">{upload.comment || 'Sin comentario'}</p>
+                      <div className="flex justify-between">
+                        <button
+                          onClick={() => approveUpload(upload.id)}
+                          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition flex items-center"
+                        >
+                          <FaCheck className="mr-2" />
+                          Aprobar
+                        </button>
+                        <button
+                          onClick={() => deleteUpload(upload.id, upload.image_url)}
+                          className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition flex items-center"
+                        >
+                          <FaTrash className="mr-2" />
+                          Eliminar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <CarouselSettings />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </main>
   );
 };
 
 export default AdminPanel;
-
 --------------------------------------------------------------------------------
 
 ### Archivo: src\app\components\CameraIcon.jsx ###
@@ -200,6 +222,289 @@ const CameraIcon = () => (
   );
   
   export default CameraIcon;
+--------------------------------------------------------------------------------
+
+### Archivo: src\app\components\CarouselSettings.jsx ###
+# Client Component
+--------------------------------------------------------------------------------
+"use client";
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../utils/supabaseClient';
+import { Slider } from "@/app/components/ui/slider";
+import { Switch } from "@/app/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
+import { toast } from 'react-toastify';
+import { FaBolt, FaSmile, FaHandSparkles, FaClock, FaCog, FaSave, FaImages } from 'react-icons/fa';
+
+const CarouselSettings = () => {
+  // Cambiamos los nombres para que coincidan con la base de datos
+  const [settings, setSettings] = useState({
+    slide_interval: 5000,
+    photos_limit: 'all',
+    flash_enabled: true,
+    flash_interval: 10000,
+    emojis_enabled: true,
+    emoji_interval: 1000,
+    selected_emojis: "❤️,🧡,💛,💚,💙,💜,🎉,🎊,🎈,🥳",
+    confetti_enabled: true,
+    confetti_interval: 30000
+  });
+  
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    setIsLoading(true);
+    try {
+      console.log('Fetching settings...');
+      const { data, error } = await supabase
+        .from('carousel_settings')
+        .select('*')
+        .single();
+
+      console.log('Response:', { data, error });
+
+      if (error) {
+        console.error('Error fetching settings:', error);
+        toast.error('Error al cargar la configuración');
+      } else if (data) {
+        console.log('Setting data:', data);
+        setSettings(data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error al cargar la configuración');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveSettings = async () => {
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('carousel_settings')
+        .upsert(settings);
+
+      if (error) {
+        console.error('Error saving settings:', error);
+        toast.error('Error al guardar la configuración');
+      } else {
+        toast.success('Configuración guardada exitosamente');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error('Error al guardar la configuración');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // ... resto del JSX actualizado con los nuevos nombres de propiedades ...
+  return (
+    <div className="space-y-6 text-white">
+      {/* Header se mantiene igual */}
+      
+      {/* Duración de cada foto */}
+      <div className="space-y-4 bg-gray-800/40 p-4 rounded-lg border border-gray-700/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FaClock className="text-purple-400" />
+            <span>Duración de cada foto</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-purple-400 font-medium">{settings.slide_interval / 1000}s</span>
+          </div>
+        </div>
+        <div className="pl-6">
+          <Slider
+            value={[settings.slide_interval]}
+            onValueChange={([value]) => setSettings({ ...settings, slide_interval: value })}
+            min={2000}
+            max={10000}
+            step={1000}
+            className="w-full"
+          />
+        </div>
+      </div>
+
+      {/* Cantidad de fotos se mantiene igual */}
+{/* Cantidad de fotos */}
+<div className="space-y-4 bg-gray-800/40 p-4 rounded-lg border border-gray-700/50">
+  <div className="flex items-center gap-2">
+    <FaImages className="text-purple-400" />
+    <span>Cantidad de fotos a mostrar</span>
+  </div>
+  <div className="pl-6">
+    <Select 
+      value={settings.photos_limit} 
+      onValueChange={(value) => setSettings({ ...settings, photos_limit: value })}
+    >
+      <SelectTrigger className="w-full bg-gray-700/50 border-gray-600 text-white">
+        <SelectValue placeholder="Selecciona un límite" />
+      </SelectTrigger>
+      <SelectContent className="bg-gray-800 border-gray-700">
+        <SelectItem value="all" className="text-white hover:bg-gray-700">
+          Todas las fotos
+        </SelectItem>
+        <SelectItem value="10" className="text-white hover:bg-gray-700">
+          Últimas 10 fotos
+        </SelectItem>
+        <SelectItem value="20" className="text-white hover:bg-gray-700">
+          Últimas 20 fotos
+        </SelectItem>
+        <SelectItem value="30" className="text-white hover:bg-gray-700">
+          Últimas 30 fotos
+        </SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+</div>
+      {/* Efecto Flash */}
+      <div className="space-y-4 bg-gray-800/40 p-4 rounded-lg border border-gray-700/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FaBolt className="text-purple-400" />
+            <span>Efecto Flash</span>
+          </div>
+          <Switch
+            checked={settings.flash_enabled}
+            onCheckedChange={(checked) => 
+              setSettings({ ...settings, flash_enabled: checked })
+            }
+          />
+        </div>
+        {settings.flash_enabled && (
+          <div className="space-y-2 mt-4 pl-6">
+            <div className="flex justify-between">
+              <span className="text-gray-400">Intervalo</span>
+              <span className="text-purple-400 font-medium">{settings.flash_interval / 1000}s</span>
+            </div>
+            <Slider
+              value={[settings.flash_interval]}
+              onValueChange={([value]) => setSettings({ ...settings, flash_interval: value })}
+              min={5000}
+              max={30000}
+              step={1000}
+              className="w-full"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Emojis Flotantes */}
+      <div className="space-y-4 bg-gray-800/40 p-4 rounded-lg border border-gray-700/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FaSmile className="text-purple-400" />
+            <span>Emojis Flotantes</span>
+          </div>
+          <Switch
+            checked={settings.emojis_enabled}
+            onCheckedChange={(checked) => 
+              setSettings({ ...settings, emojis_enabled: checked })
+            }
+          />
+        </div>
+        {settings.emojis_enabled && (
+          <div className="space-y-4 mt-4 pl-6">
+            <div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Intervalo</span>
+                <span className="text-purple-400 font-medium">{settings.emoji_interval / 1000}s</span>
+              </div>
+              <Slider
+                value={[settings.emoji_interval]}
+                onValueChange={([value]) => setSettings({ ...settings, emoji_interval: value })}
+                min={500}
+                max={5000}
+                step={500}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-gray-400 mb-2">Emojis a utilizar</label>
+              <input
+                type="text"
+                value={settings.selected_emojis}
+                onChange={(e) => setSettings({ ...settings, selected_emojis: e.target.value })}
+                className="w-full p-2 bg-gray-700/50 rounded-md border border-gray-600 
+                  focus:outline-none focus:ring-2 focus:ring-purple-500"
+                placeholder="Separar emojis con comas"
+              />
+              <p className="text-xs text-gray-500 mt-1">Separa los emojis con comas</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Efecto Confetti */}
+      <div className="space-y-4 bg-gray-800/40 p-4 rounded-lg border border-gray-700/50">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FaHandSparkles className="text-purple-400" />
+            <span>Efecto Confetti</span>
+          </div>
+          <Switch
+            checked={settings.confetti_enabled}
+            onCheckedChange={(checked) => 
+              setSettings({ ...settings, confetti_enabled: checked })
+            }
+          />
+        </div>
+        {settings.confetti_enabled && (
+          <div className="space-y-2 mt-4 pl-6">
+            <div className="flex justify-between">
+              <span className="text-gray-400">Intervalo</span>
+              <span className="text-purple-400 font-medium">{settings.confetti_interval / 1000}s</span>
+            </div>
+            <Slider
+              value={[settings.confetti_interval]}
+              onValueChange={([value]) => setSettings({ ...settings, confetti_interval: value })}
+              min={10000}
+              max={60000}
+              step={5000}
+              className="w-full"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Botón Guardar */}
+      <button
+        onClick={saveSettings}
+        disabled={isSaving}
+        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg 
+          transition-all duration-200 flex items-center justify-center gap-2 shadow-lg 
+          hover:shadow-purple-600/25 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {isSaving ? (
+          <>
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+            <span>Guardando...</span>
+          </>
+        ) : (
+          <>
+            <FaSave />
+            <span>Guardar configuración</span>
+          </>
+        )}
+      </button>
+    </div>
+  );
+};
+
+export default CarouselSettings;
 --------------------------------------------------------------------------------
 
 ### Archivo: src\app\components\FloatingEmoji.jsx ###
@@ -818,11 +1123,461 @@ export type PhotoType = {
   };
 --------------------------------------------------------------------------------
 
+### Archivo: src\app\components\ui\button.tsx ###
+--------------------------------------------------------------------------------
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/app/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-10 px-4 py-2",
+        sm: "h-9 rounded-md px-3",
+        lg: "h-11 rounded-md px-8",
+        icon: "h-10 w-10",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+--------------------------------------------------------------------------------
+
+### Archivo: src\app\components\ui\card.tsx ###
+--------------------------------------------------------------------------------
+import * as React from "react"
+
+import { cn } from "@/app/lib/utils"
+
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      className
+    )}
+    {...props}
+  />
+))
+Card.displayName = "Card"
+
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+))
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn(
+      "text-2xl font-semibold leading-none tracking-tight",
+      className
+    )}
+    {...props}
+  />
+))
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn("text-sm text-muted-foreground", className)}
+    {...props}
+  />
+))
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+))
+CardFooter.displayName = "CardFooter"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+
+--------------------------------------------------------------------------------
+
+### Archivo: src\app\components\ui\select.tsx ###
+# Client Component
+--------------------------------------------------------------------------------
+"use client"
+
+import * as React from "react"
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { Check, ChevronDown, ChevronUp } from "lucide-react"
+
+import { cn } from "@/app/lib/utils"
+
+const Select = SelectPrimitive.Root
+
+const SelectGroup = SelectPrimitive.Group
+
+const SelectValue = SelectPrimitive.Value
+
+const SelectTrigger = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <SelectPrimitive.Icon asChild>
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </SelectPrimitive.Icon>
+  </SelectPrimitive.Trigger>
+))
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
+
+const SelectScrollUpButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollUpButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1",
+      className
+    )}
+    {...props}
+  >
+    <ChevronUp className="h-4 w-4" />
+  </SelectPrimitive.ScrollUpButton>
+))
+SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
+
+const SelectScrollDownButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollDownButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1",
+      className
+    )}
+    {...props}
+  >
+    <ChevronDown className="h-4 w-4" />
+  </SelectPrimitive.ScrollDownButton>
+))
+SelectScrollDownButton.displayName =
+  SelectPrimitive.ScrollDownButton.displayName
+
+const SelectContent = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+>(({ className, children, position = "popper", ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        position === "popper" &&
+          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+        className
+      )}
+      position={position}
+      {...props}
+    >
+      <SelectScrollUpButton />
+      <SelectPrimitive.Viewport
+        className={cn(
+          "p-1",
+          position === "popper" &&
+            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+        )}
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+      <SelectScrollDownButton />
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+))
+SelectContent.displayName = SelectPrimitive.Content.displayName
+
+const SelectLabel = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className)}
+    {...props}
+  />
+))
+SelectLabel.displayName = SelectPrimitive.Label.displayName
+
+const SelectItem = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+      <SelectPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </SelectPrimitive.ItemIndicator>
+    </span>
+
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+))
+SelectItem.displayName = SelectPrimitive.Item.displayName
+
+const SelectSeparator = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-muted", className)}
+    {...props}
+  />
+))
+SelectSeparator.displayName = SelectPrimitive.Separator.displayName
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+}
+
+--------------------------------------------------------------------------------
+
+### Archivo: src\app\components\ui\slider.tsx ###
+# Client Component
+--------------------------------------------------------------------------------
+"use client"
+
+import * as React from "react"
+import * as SliderPrimitive from "@radix-ui/react-slider"
+
+import { cn } from "@/app/lib/utils"
+
+const Slider = React.forwardRef<
+  React.ElementRef<typeof SliderPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <SliderPrimitive.Root
+    ref={ref}
+    className={cn(
+      "relative flex w-full touch-none select-none items-center",
+      className
+    )}
+    {...props}
+  >
+    <SliderPrimitive.Track className="relative h-2 w-full grow overflow-hidden rounded-full bg-gray-700">
+      <SliderPrimitive.Range className="absolute h-full bg-purple-500" />
+    </SliderPrimitive.Track>
+    <SliderPrimitive.Thumb className="block h-5 w-5 rounded-full border-2 border-purple-500 bg-white ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50" />
+  </SliderPrimitive.Root>
+))
+Slider.displayName = SliderPrimitive.Root.displayName
+
+export { Slider }
+--------------------------------------------------------------------------------
+
+### Archivo: src\app\components\ui\switch.tsx ###
+# Client Component
+--------------------------------------------------------------------------------
+"use client"
+
+import * as React from "react"
+import * as SwitchPrimitives from "@radix-ui/react-switch"
+
+import { cn } from "@/app/lib/utils"
+
+const Switch = React.forwardRef<
+  React.ElementRef<typeof SwitchPrimitives.Root>,
+  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
+>(({ className, ...props }, ref) => (
+  <SwitchPrimitives.Root
+    className={cn(
+      "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-purple-500 data-[state=unchecked]:bg-gray-700",
+      className
+    )}
+    {...props}
+    ref={ref}
+  >
+    <SwitchPrimitives.Thumb
+      className={cn(
+        "pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0"
+      )}
+    />
+  </SwitchPrimitives.Root>
+))
+Switch.displayName = SwitchPrimitives.Root.displayName
+
+export { Switch }
+--------------------------------------------------------------------------------
+
+### Archivo: src\app\components\ui\tabs.tsx ###
+# Client Component
+--------------------------------------------------------------------------------
+"use client"
+
+import * as React from "react"
+import * as TabsPrimitive from "@radix-ui/react-tabs"
+
+import { cn } from "@/app/lib/utils"
+
+const Tabs = TabsPrimitive.Root
+
+const TabsList = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.List>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.List
+    ref={ref}
+    className={cn(
+      "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+      className
+    )}
+    {...props}
+  />
+))
+TabsList.displayName = TabsPrimitive.List.displayName
+
+const TabsTrigger = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+      className
+    )}
+    {...props}
+  />
+))
+TabsTrigger.displayName = TabsPrimitive.Trigger.displayName
+
+const TabsContent = React.forwardRef<
+  React.ElementRef<typeof TabsPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
+>(({ className, ...props }, ref) => (
+  <TabsPrimitive.Content
+    ref={ref}
+    className={cn(
+      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+      className
+    )}
+    {...props}
+  />
+))
+TabsContent.displayName = TabsPrimitive.Content.displayName
+
+export { Tabs, TabsList, TabsTrigger, TabsContent }
+
+--------------------------------------------------------------------------------
+
 
 ================================================================================
 SECCIÓN: LIB
 ================================================================================
 
+
+### Archivo: src\app\lib\utils.ts ###
+--------------------------------------------------------------------------------
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+ 
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+--------------------------------------------------------------------------------
 
 ### Archivo: src\app\utils\supabaseClient.jsx ###
 --------------------------------------------------------------------------------
@@ -891,44 +1646,114 @@ SECCIÓN: OTHER
 ================================================================================
 
 
-### Archivo: tailwind.config.ts ###
+### Archivo: tailwind.config.js ###
 --------------------------------------------------------------------------------
-// tailwind.config.js
 
-module.exports = {
+
+const config = {
   content: [
-    "./app/**/*.{js,jsx}",
-    "./src/**/*.{js,jsx}",
-    "./pages/**/*.{js,jsx}",
-    "./components/**/*.{js,jsx}",
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
       colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         primary: {
-          light: '#a78bfa',
-          DEFAULT: '#8b5cf6',
-          dark: '#6d28d9',
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
-          light: '#c084fc',
-          DEFAULT: '#a855f7',
-          dark: '#9333ea',
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          light: '#c4b5fd',
-          DEFAULT: '#a78bfa',
-          dark: '#8b5cf6',
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
         },
-      },
-      fontFamily: {
-        metropolis: ['"Metropolis"', 'sans-serif'],
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 }
+export default config
+--------------------------------------------------------------------------------
 
+### Archivo: tailwind.config.ts ###
+--------------------------------------------------------------------------------
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  theme: {
+    extend: {
+      colors: {
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+}
+export default config
 --------------------------------------------------------------------------------
 
 ### Archivo: src\app\layout.jsx ###
@@ -1046,25 +1871,22 @@ import { DEVICE_CONFIGS } from "@/app/components/DeviceCarousel/config";
 import styles from "./styles.module.css";
 import Image from "next/image";
 
-const POLL_INTERVAL = 60000;
-const EFFECT_INTERVAL = 1000;
-const PARTY_EMOJIS = [
-  "❤️",
-  "🧡",
-  "💛",
-  "💚",
-  "💙",
-  "💜",
-  "🎉",
-  "🎊",
-  "🎈",
-  "🥳",
-];
-const CONFETTI_COLORS = ["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5"];
+const DEFAULT_SETTINGS = {
+  slide_interval: 5000,
+  photos_limit: 'all',
+  flash_enabled: true,
+  flash_interval: 10000,
+  emojis_enabled: true,
+  emoji_interval: 1000,
+  selected_emojis: "❤️,🧡,💛,💚,💙,💜,🎉,🎊,🎈,🥳",
+  confetti_enabled: true,
+  confetti_interval: 30000
+};
 
 export default function CarouselPage() {
   const [width, height] = useWindowSize();
   const [photos, setPhotos] = useState([]);
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [showFlash, setShowFlash] = useState(false);
   const [floatingItems, setFloatingItems] = useState([]);
@@ -1073,7 +1895,46 @@ export default function CarouselPage() {
   const [selectedDevice, setSelectedDevice] = useState("iPadMini");
   const [currentComment, setCurrentComment] = useState("");
 
-  // Deshabilitar scroll y manejar fullscreen
+  const fetchSettings = async () => {
+    console.log('Fetching carousel settings...');
+    const { data, error } = await supabase
+      .from('carousel_settings')
+      .select('*')
+      .single();
+
+    console.log('Settings response:', { data, error });
+
+    if (!error && data) {
+      console.log('Updating settings:', data);
+      setSettings(data);
+    } else {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
+  const fetchPhotos = useCallback(async () => {
+    try {
+      let query = supabase
+        .from("uploads")
+        .select("*")
+        .eq("approved", true)
+        .order("created_at", { ascending: false });
+
+      if (settings?.photos_limit && settings.photos_limit !== 'all') {
+        query = query.limit(parseInt(settings.photos_limit));
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+      setPhotos(data || []);
+    } catch (error) {
+      console.error("Error fetching photos:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [settings?.photos_limit]);
+
   useEffect(() => {
     const disableScroll = () => {
       document.documentElement.style.cssText = `
@@ -1090,12 +1951,8 @@ export default function CarouselPage() {
       document.body.style.cssText = document.documentElement.style.cssText;
     };
 
-    const enableScroll = () => {
-      document.documentElement.style.cssText = "";
-      document.body.style.cssText = "";
-    };
-
     disableScroll();
+    fetchSettings();
 
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -1104,136 +1961,97 @@ export default function CarouselPage() {
     document.addEventListener("fullscreenchange", handleFullscreenChange);
 
     return () => {
-      enableScroll();
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
     };
   }, []);
 
-  // Fetch de fotos y suscripción a cambios
-  const fetchPhotos = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from("uploads")
-        .select("*")
-        .eq("approved", true)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setPhotos(data || []);
-    } catch (error) {
-      console.error("Error fetching photos:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchPhotos();
-    const pollInterval = setInterval(fetchPhotos, POLL_INTERVAL);
-
-    const channel = supabase
-      .channel("public:uploads")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "uploads",
-          filter: "approved=eq.true",
-        },
-        fetchPhotos
-      )
-      .subscribe();
-
-    return () => {
-      clearInterval(pollInterval);
-      supabase.removeChannel(channel);
-    };
-  }, [fetchPhotos]);
-
-  // Efectos visuales
   const triggerFlash = useCallback(() => {
-    setShowFlash(true);
-    setTimeout(() => setShowFlash(false), 200);
-  }, []);
+    if (settings.flash_enabled) {
+      setShowFlash(true);
+      setTimeout(() => setShowFlash(false), 200);
+    }
+  }, [settings.flash_enabled]);
 
   const createFloatingItem = useCallback(() => {
-    const newItem = {
-      id: Date.now(),
-      emoji: PARTY_EMOJIS[Math.floor(Math.random() * PARTY_EMOJIS.length)],
-      left: `${Math.random() * 100}%`,
-      animationDuration: `${2 + Math.random() * 3}s`,
-      size: `${1.5 + Math.random() * 1}rem`,
-    };
+    if (settings.emojis_enabled) {
+      const emojis = settings.selected_emojis.split(',').filter(emoji => emoji.trim());
+      const newItem = {
+        id: Date.now(),
+        emoji: emojis[Math.floor(Math.random() * emojis.length)].trim(),
+        left: `${Math.random() * 100}%`,
+        animationDuration: `${2 + Math.random() * 3}s`,
+        size: `${1.5 + Math.random() * 1}rem`,
+      };
 
-    setFloatingItems((prev) => [...prev, newItem]);
-    setTimeout(() => {
-      setFloatingItems((prev) => prev.filter((item) => item.id !== newItem.id));
-    }, parseFloat(newItem.animationDuration) * 1000);
-  }, []);
+      setFloatingItems((prev) => [...prev, newItem]);
+      setTimeout(() => {
+        setFloatingItems((prev) => prev.filter((item) => item.id !== newItem.id));
+      }, parseFloat(newItem.animationDuration) * 1000);
+    }
+  }, [settings.emojis_enabled, settings.selected_emojis]);
 
   useEffect(() => {
-    fetchPhotos(); // Fetch inicial
-  
-    // Configuración del canal de tiempo real
+    if (settings) {
+      fetchPhotos();
+      const pollInterval = setInterval(fetchPhotos, 60000);
+
+      const effectInterval = setInterval(() => {
+        if (Math.random() < 0.8) createFloatingItem();
+        if (Math.random() < 0.2) triggerFlash();
+      }, settings.emoji_interval || DEFAULT_SETTINGS.emoji_interval);
+
+      const confettiInterval = setInterval(() => {
+        if (settings.confetti_enabled) {
+          setConfettiActive(true);
+          setTimeout(() => setConfettiActive(false), 5000);
+        }
+      }, settings.confetti_interval || DEFAULT_SETTINGS.confetti_interval);
+
+      return () => {
+        clearInterval(pollInterval);
+        clearInterval(effectInterval);
+        clearInterval(confettiInterval);
+      };
+    }
+  }, [settings, fetchPhotos, createFloatingItem, triggerFlash]);
+
+  useEffect(() => {
+    console.log('Setting up realtime subscriptions...');
     const channel = supabase
-      .channel('upload-changes')
+      .channel('carousel-changes')
       .on(
         'postgres_changes',
         {
-          event: '*', // Escucha todos los eventos (INSERT, UPDATE, DELETE)
+          event: '*',
+          schema: 'public',
+          table: 'carousel_settings'
+        },
+        (payload) => {
+          console.log('Settings changed:', payload);
+          fetchSettings();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
           schema: 'public',
           table: 'uploads',
           filter: 'approved=eq.true'
         },
         (payload) => {
-          console.log('Cambio detectado:', payload);
-          // Actualizar fotos según el tipo de cambio
-          if (payload.eventType === 'INSERT') {
-            setPhotos(prev => [payload.new, ...prev]);
-          } else if (payload.eventType === 'UPDATE') {
-            setPhotos(prev => 
-              prev.map(photo => 
-                photo.id === payload.new.id ? payload.new : photo
-              )
-            );
-          } else if (payload.eventType === 'DELETE') {
-            setPhotos(prev => 
-              prev.filter(photo => photo.id !== payload.old.id)
-            );
-          }
+          console.log('Photos changed:', payload);
+          fetchPhotos();
         }
       )
       .subscribe();
-  
-    // Polling como respaldo
-    const pollInterval = setInterval(fetchPhotos, POLL_INTERVAL);
-  
+
     return () => {
-      clearInterval(pollInterval);
+      console.log('Cleaning up subscriptions...');
       supabase.removeChannel(channel);
     };
   }, [fetchPhotos]);
 
-  useEffect(() => {
-    const effectInterval = setInterval(() => {
-      if (Math.random() < 0.8) createFloatingItem();
-      if (Math.random() < 0.2) triggerFlash();
-    }, EFFECT_INTERVAL);
-
-    const confettiInterval = setInterval(() => {
-      setConfettiActive(true);
-      setTimeout(() => setConfettiActive(false), 5000);
-    }, 30000);
-
-    return () => {
-      clearInterval(effectInterval);
-      clearInterval(confettiInterval);
-    };
-  }, [createFloatingItem, triggerFlash]);
-
-
-  // Toggle fullscreen
   const toggleFullscreen = async () => {
     try {
       if (!isFullscreen) {
@@ -1254,51 +2072,39 @@ export default function CarouselPage() {
     );
   }
 
-  const handleSlideChange = (currentIndex) => {
-    setCurrentComment(photos[currentIndex]?.comment || "");
+  const handleSlideChange = (swiper) => {
+    setCurrentComment(photos[swiper.realIndex]?.comment || "");
   };
 
   return (
     <div className={styles.container}>
-      {/* Logo */}
       <div className={styles.logoContainer}>
         <Image
-          src="/logo-form.png" // Ajusta la ruta según donde guardes el logo
+          src="/logo-form.png"
           alt="Real Meet 2024"
           width={200}
           height={60}
           priority
         />
       </div>
-      <CommentBubble  comment={currentComment} />
-      {/* Efectos de fondo */}
+
+      <CommentBubble comment={currentComment} />
+
       <div className={styles.backgroundEffects}>
         <div className={styles.ambientEffect} />
         <div className={styles.starLayer1} />
         <div className={styles.starLayer2} />
-        <div
-          className={styles.brightStar}
-          style={{ top: "15%", left: "20%" }}
-        />
-        <div
-          className={styles.brightStar}
-          style={{ top: "25%", right: "30%" }}
-        />
-        <div
-          className={styles.brightStar}
-          style={{ bottom: "30%", left: "25%" }}
-        />
-        <div
-          className={styles.brightStar}
-          style={{ bottom: "20%", right: "15%" }}
-        />
+        <div className={styles.brightStar} style={{ top: "15%", left: "20%" }} />
+        <div className={styles.brightStar} style={{ top: "25%", right: "30%" }} />
+        <div className={styles.brightStar} style={{ bottom: "30%", left: "25%" }} />
+        <div className={styles.brightStar} style={{ bottom: "20%", right: "15%" }} />
       </div>
 
       <Confetti
         width={width}
         height={height}
         numberOfPieces={confettiActive ? 200 : 0}
-        colors={CONFETTI_COLORS}
+        colors={["#f44336", "#e91e63", "#9c27b0", "#673ab7", "#3f51b5"]}
         recycle={false}
       />
 
@@ -1319,19 +2125,19 @@ export default function CarouselPage() {
       <main className={styles.mainContent}>
         <div className={styles.carouselLayout}>
           <div className={styles.deviceWrapper}>
-          <DeviceCarousel
-  photos={photos}
-  deviceConfig={DEVICE_CONFIGS[selectedDevice]}
-  isFullscreen={isFullscreen}
-  width={width}
-  height={height}
-  onSlideChange={(swiper) => handleSlideChange(swiper.realIndex)}
-/>
-
-            {/* Elimina la burbuja de comentario de aquí ya que ahora está en DeviceCarousel */}
+            <DeviceCarousel
+              photos={photos}
+              deviceConfig={DEVICE_CONFIGS[selectedDevice]}
+              isFullscreen={isFullscreen}
+              width={width}
+              height={height}
+              onSlideChange={handleSlideChange}
+              autoplayDelay={settings.slide_interval}
+            />
           </div>
         </div>
       </main>
+
       <div className="fixed bottom-8 right-8 z-50">
         <Image
           src="/logo-blanco.png"
@@ -1342,7 +2148,7 @@ export default function CarouselPage() {
           priority
         />
       </div>
-      {/* Botón de fullscreen reposicionado */}
+
       <button
         onClick={toggleFullscreen}
         className="fixed top-4 right-4 w-10 h-10 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-full shadow-xl border border-white/50 transition-all duration-300 z-50"
@@ -1352,28 +2158,26 @@ export default function CarouselPage() {
       </button>
 
       <div className="fixed top-20 right-24 z-50">
-        <QRCode
-          url={process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}
-        />
+        <QRCode url={process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"} />
       </div>
+
       {showFlash && <div className={styles.flash} />}
     </div>
   );
 }
-
 --------------------------------------------------------------------------------
 
 ### Archivo: src\app\admin\dashboard\page.jsx ###
 # Client Component
 --------------------------------------------------------------------------------
-// app/admin/page.jsx
 "use client"
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaCheck, FaTrash } from 'react-icons/fa';
+import { FaCheck, FaTrash, FaCog, FaImages, FaSignOutAlt } from 'react-icons/fa';
 import { supabase } from '../../utils/supabaseClient';
 import { toast } from 'react-toastify';
-
+import CarouselSettings from '@/app/components/CarouselSettings';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 
 const AdminPanel = () => {
   const [uploads, setUploads] = useState([]);
@@ -1415,9 +2219,9 @@ const AdminPanel = () => {
       .select('*')
       .eq('approved', false)
       .order('created_at', { ascending: true });
-    console.log(data, error)
+
     if (error) {
-      toast.error('Hubo un problema al obtener las fotos pendientes.');
+      toast.error('Error al obtener las fotos pendientes');
     } else {
       setUploads(data);
     }
@@ -1429,12 +2233,11 @@ const AdminPanel = () => {
       .from('uploads')
       .update({ approved: true })
       .eq('id', id);
-    console.log(id, error); // Asegúrate de revisar el error
+
     if (error) {
-      console.error('Error al aprobar la foto:', error);
-      toast.error('Hubo un problema al aprobar la foto!');
+      toast.error('Error al aprobar la foto');
     } else {
-      toast.success('Foto aprobada!');
+      toast.success('Foto aprobada exitosamente');
       fetchPendingUploads();
     }
   };
@@ -1448,8 +2251,7 @@ const AdminPanel = () => {
       .eq('id', id);
 
     if (deleteError) {
-      console.error('Error al eliminar el registro:', deleteError);
-      toast.error('Hubo un problema al eliminar la foto.');
+      toast.error('Error al eliminar el registro');
       return;
     }
 
@@ -1458,9 +2260,9 @@ const AdminPanel = () => {
       .remove([imagePath]);
 
     if (storageError) {
-     toast.error(`Error al eliminar la imagen: ${storageError}`);
+      toast.error('Error al eliminar la imagen');
     } else {
-      toast.info('Foto eliminada.');
+      toast.success('Foto eliminada exitosamente');
       fetchPendingUploads();
     }
   };
@@ -1470,50 +2272,128 @@ const AdminPanel = () => {
     router.push('/admin/login');
   };
 
+
   return (
-    <main className="min-h-screen text-gray-100 flex flex-col items-center justify-start p-4">
-      <div className="w-full max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-md p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Panel de Administración</h1>
+    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100 flex flex-col items-center justify-start p-4 md:p-8">
+      <div className="w-full max-w-5xl mx-auto">
+        {/* Header mejorado */}
+        <div className="flex justify-between items-center mb-8 bg-gray-800/50 p-6 rounded-xl backdrop-blur-sm border border-gray-700/50 shadow-lg">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+              Panel de Administración
+            </h1>
+            <p className="text-gray-400 mt-1">Gestión de fotos y configuración del carrusel</p>
+          </div>
           <button
             onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition"
+            className="bg-red-600/90 hover:bg-red-700 text-white py-2.5 px-5 rounded-lg transition-all 
+            duration-200 flex items-center gap-2 shadow-lg hover:shadow-red-600/25 active:scale-95
+            border border-red-500/20 backdrop-blur-sm"
           >
+            <FaSignOutAlt />
             Cerrar Sesión
           </button>
         </div>
-        {loading ? (
-          <p className="text-center">Cargando fotos pendientes...</p>
-        ) : uploads.length === 0 ? (
-          <p className="text-center">No hay fotos pendientes de aprobación.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {uploads.map((upload) => (
-              <div key={upload.id} className="bg-gray-700 rounded-lg overflow-hidden">
-                <img src={upload.image_url} alt="Foto pendiente" className="w-full h-48 object-cover" />
-                <div className="p-4">
-                  <p className="mb-4">{upload.comment || 'Sin comentario'}</p>
-                  <div className="flex justify-between">
-                    <button
-                      onClick={() => approveUpload(upload.id)}
-                      className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition flex items-center"
-                    >
-                      <FaCheck className="mr-2" />
-                      Aprobar
-                    </button>
-                    <button
-                      onClick={() => deleteUpload(upload.id, upload.image_url)}
-                      className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition flex items-center"
-                    >
-                      <FaTrash className="mr-2" />
-                      Eliminar
-                    </button>
-                  </div>
-                </div>
+
+        {/* Tabs mejorados */}
+        <Tabs defaultValue="photos" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-800/50 rounded-xl p-1.5 backdrop-blur-sm
+            border border-gray-700/50 shadow-lg">
+            <TabsTrigger 
+              value="photos" 
+              className="flex items-center gap-2 py-3 rounded-lg data-[state=active]:bg-purple-600 
+              data-[state=active]:text-white transition-all duration-200 hover:bg-gray-700/50
+              data-[state=active]:shadow-lg data-[state=active]:shadow-purple-500/20"
+            >
+              <FaImages className="text-lg" />
+              <span className="font-medium">Fotos Pendientes</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="settings" 
+              className="flex items-center gap-2 py-3 rounded-lg data-[state=active]:bg-purple-600
+              data-[state=active]:text-white transition-all duration-200 hover:bg-gray-700/50
+              data-[state=active]:shadow-lg data-[state=active]:shadow-purple-500/20"
+            >
+              <FaCog className="text-lg" />
+              <span className="font-medium">Configuración</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Contenido de Fotos */}
+          <TabsContent 
+            value="photos" 
+            className="bg-gray-800/50 rounded-xl shadow-xl border border-gray-700/50 backdrop-blur-sm 
+            transition-all duration-300 p-6"
+          >
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mb-4" />
+                <p className="text-gray-400">Cargando fotos pendientes...</p>
               </div>
-            ))}
-          </div>
-        )}
+            ) : uploads.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+                <FaImages className="text-5xl mb-4 opacity-50" />
+                <p className="text-lg">No hay fotos pendientes de aprobación</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {uploads.map((upload) => (
+                  <div 
+                    key={upload.id} 
+                    className="group bg-gray-700/50 rounded-xl overflow-hidden border border-gray-600/50 
+                    shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-700"
+                  >
+                    <div className="relative h-56 overflow-hidden">
+                      <img 
+                        src={upload.image_url} 
+                        alt="Foto pendiente" 
+                        className="w-full h-full object-cover transition-transform duration-300 
+                        group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 
+                        group-hover:opacity-60 transition-opacity duration-300" />
+                    </div>
+                    <div className="p-5">
+                      <p className="mb-5 text-gray-300">
+                        {upload.comment || 
+                          <span className="text-gray-500 italic">Sin comentario</span>
+                        }
+                      </p>
+                      <div className="flex justify-between gap-4">
+                        <button
+                          onClick={() => approveUpload(upload.id)}
+                          className="flex-1 bg-green-600/90 hover:bg-green-700 text-white py-2.5 px-4 
+                          rounded-lg transition-all duration-200 flex items-center justify-center gap-2
+                          shadow-lg hover:shadow-green-600/25 active:scale-95 border border-green-500/20"
+                        >
+                          <FaCheck />
+                          <span>Aprobar</span>
+                        </button>
+                        <button
+                          onClick={() => deleteUpload(upload.id, upload.image_url)}
+                          className="flex-1 bg-red-600/90 hover:bg-red-700 text-white py-2.5 px-4 
+                          rounded-lg transition-all duration-200 flex items-center justify-center gap-2
+                          shadow-lg hover:shadow-red-600/25 active:scale-95 border border-red-500/20"
+                        >
+                          <FaTrash />
+                          <span>Eliminar</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Contenido de Configuración */}
+          <TabsContent 
+            value="settings"
+            className="transition-all duration-300"
+          >
+            <CarouselSettings />
+          </TabsContent>
+        </Tabs>
       </div>
     </main>
   );
@@ -1544,11 +2424,11 @@ export default AdminLogin
 RESUMEN DEL PROYECTO NEXT.JS 14
 ================================================================================
 
-Total de archivos: 23
+Total de archivos: 32
 Pages: 0
 Layouts: 0
-Components: 13
+Components: 20
 API Routes: 0
 Hooks: 1
-Server Components: 16
-Client Components: 7
+Server Components: 19
+Client Components: 13

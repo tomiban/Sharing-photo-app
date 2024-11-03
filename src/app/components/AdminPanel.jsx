@@ -1,19 +1,20 @@
-// src/components/AdminPanel.js
-
+"use client"
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../utils/supabaseClient';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
+import { FaCheck, FaTrash, FaCog, FaImages } from 'react-icons/fa';
+import { supabase } from '../../utils/supabaseClient';
+import { toast } from 'react-toastify';
+import CarouselSettings from '@/app/components/CarouselSettings';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 
 const AdminPanel = () => {
   const [uploads, setUploads] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [authUser, setAuthUser] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
     const fetchSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      setAuthUser(session?.user ?? null);
       if (session) {
         fetchPendingUploads();
       } else {
@@ -25,7 +26,6 @@ const AdminPanel = () => {
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setAuthUser(session?.user ?? null);
         if (session) {
           fetchPendingUploads();
         } else {
@@ -48,10 +48,8 @@ const AdminPanel = () => {
       .eq('approved', false)
       .order('created_at', { ascending: true });
 
- 
     if (error) {
-      console.error('Error al obtener las fotos pendientes:', error);
-      alert('Hubo un problema al obtener las fotos pendientes.');
+      toast.error('Error al obtener las fotos pendientes');
     } else {
       setUploads(data);
     }
@@ -65,40 +63,34 @@ const AdminPanel = () => {
       .eq('id', id);
 
     if (error) {
-      console.error('Error al aprobar la foto:', error);
-      alert('Hubo un problema al aprobar la foto.');
+      toast.error('Error al aprobar la foto');
     } else {
-      alert('Foto aprobada.');
+      toast.success('Foto aprobada exitosamente');
       fetchPendingUploads();
     }
   };
 
   const deleteUpload = async (id, image_url) => {
-    // Extraer el path de la URL de la imagen
     const imagePath = image_url.split('/storage/v1/object/public/photos/')[1];
 
-    // Eliminar el registro de la base de datos
     const { error: deleteError } = await supabase
       .from('uploads')
       .delete()
       .eq('id', id);
 
     if (deleteError) {
-      console.error('Error al eliminar el registro:', deleteError);
-      alert('Hubo un problema al eliminar la foto.');
+      toast.error('Error al eliminar el registro');
       return;
     }
 
-    // Eliminar la imagen del almacenamiento
     const { error: storageError } = await supabase.storage
       .from('photos')
       .remove([imagePath]);
 
     if (storageError) {
-      console.error('Error al eliminar la imagen:', storageError);
-      alert('Hubo un problema al eliminar la imagen.');
+      toast.error('Error al eliminar la imagen');
     } else {
-      alert('Foto eliminada.');
+      toast.success('Foto eliminada exitosamente');
       fetchPendingUploads();
     }
   };
@@ -108,42 +100,72 @@ const AdminPanel = () => {
     router.push('/admin/login');
   };
 
-  if (!authUser) {
-    return null; // Mientras se redirige, no renderizar nada
-  }
-
   return (
-    <div className={styles.adminContainer}>
-      <h2>Panel de Administración</h2>
-      <button onClick={handleLogout} className={styles.logoutButton}>
-        Cerrar Sesión
-      </button>
-      {loading ? (
-        <p>Cargando fotos pendientes...</p>
-      ) : uploads.length === 0 ? (
-        <p>No hay fotos pendientes de aprobación.</p>
-      ) : (
-        <div className={styles.uploadsList}>
-          {uploads.map((upload) => (
-            <div key={upload.id} className={styles.uploadItem}>
-              <img src={upload.image_url} alt="Foto pendiente" />
-              <p>{upload.comment || 'Sin comentario'}</p>
-              <div className={styles.actions}>
-                <button onClick={() => approveUpload(upload.id)} className={styles.approveButton}>
-                  Aprobar
-                </button>
-                <button
-                  onClick={() => deleteUpload(upload.id, upload.image_url)}
-                  className={styles.deleteButton}
-                >
-                  Eliminar
-                </button>
-              </div>
-            </div>
-          ))}
+    <main className="min-h-screen text-gray-100 flex flex-col items-center justify-start p-4">
+      <div className="w-full max-w-4xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Panel de Administración</h1>
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition"
+          >
+            Cerrar Sesión
+          </button>
         </div>
-      )}
-    </div>
+
+        <Tabs defaultValue="photos" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-700">
+            <TabsTrigger value="photos" className="flex items-center gap-2 data-[state=active]:bg-gray-600">
+              <FaImages />
+              Fotos Pendientes
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2 data-[state=active]:bg-gray-600">
+              <FaCog />
+              Configuración
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="photos" className="bg-gray-800 rounded-lg shadow-md p-6">
+            {loading ? (
+              <p className="text-center">Cargando fotos pendientes...</p>
+            ) : uploads.length === 0 ? (
+              <p className="text-center">No hay fotos pendientes de aprobación.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {uploads.map((upload) => (
+                  <div key={upload.id} className="bg-gray-700 rounded-lg overflow-hidden">
+                    <img src={upload.image_url} alt="Foto pendiente" className="w-full h-48 object-cover" />
+                    <div className="p-4">
+                      <p className="mb-4">{upload.comment || 'Sin comentario'}</p>
+                      <div className="flex justify-between">
+                        <button
+                          onClick={() => approveUpload(upload.id)}
+                          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition flex items-center"
+                        >
+                          <FaCheck className="mr-2" />
+                          Aprobar
+                        </button>
+                        <button
+                          onClick={() => deleteUpload(upload.id, upload.image_url)}
+                          className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition flex items-center"
+                        >
+                          <FaTrash className="mr-2" />
+                          Eliminar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <CarouselSettings />
+          </TabsContent>
+        </Tabs>
+      </div>
+    </main>
   );
 };
 
