@@ -30,7 +30,7 @@ const QRCode = ({ url }) => (
     >
       <QRCodeSVG
         value={url}
-        size={230}
+        size={200}
         bgColor="white"
         fgColor="#000000"
         level="L"

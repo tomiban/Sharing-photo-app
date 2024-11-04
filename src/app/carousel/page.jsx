@@ -222,8 +222,8 @@ export default function CarouselPage() {
         <Image
           src="/logo-form.png"
           alt="Real Meet 2024"
-          width={200}
-          height={60}
+          width={260}
+          height={80}
           priority
         />
       </div>

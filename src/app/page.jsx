@@ -7,7 +7,6 @@ import UploadPhoto from "@/app/components/UploadPhoto";
 const ShimmeringStar = ({ cx, cy, size = 0.15 }) => {
   return (
     <motion.g>
-      {/* Estrella central */}
       <motion.circle
         cx={cx}
         cy={cy}
@@ -24,8 +23,6 @@ const ShimmeringStar = ({ cx, cy, size = 0.15 }) => {
           ease: "easeInOut",
         }}
       />
-
-      {/* Brillo alrededor de la estrella */}
       <motion.circle
         cx={cx}
         cy={cy}
@@ -46,12 +43,38 @@ const ShimmeringStar = ({ cx, cy, size = 0.15 }) => {
   );
 };
 
+// Componente para partículas flotantes animadas
+const FloatingParticle = ({ cx, cy, size }) => (
+  <motion.circle
+    cx={cx}
+    cy={cy}
+    r={size}
+    fill="white"
+    initial={{ opacity: 0.2, x: cx, y: cy }}
+    animate={{
+      opacity: [0.2, 0.4, 0.2],
+      x: [cx, cx + Math.random() * 2 - 1, cx],
+      y: [cy, cy + Math.random() * 2 - 1, cy],
+    }}
+    transition={{
+      duration: Math.random() * 6 + 4,
+      repeat: Infinity,
+      ease: "easeInOut",
+    }}
+  />
+);
+
 export default function Home() {
-  // Generar estrellas brillantes
   const shimmeringStars = Array.from({ length: 40 }, () => ({
     cx: Math.random() * 100,
     cy: Math.random() * 100,
     size: Math.random() * 0.15 + 0.05,
+  }));
+
+  const floatingParticles = Array.from({ length: 50 }, () => ({
+    cx: Math.random() * 100,
+    cy: Math.random() * 100,
+    size: Math.random() * 0.08 + 0.02,
   }));
 
   return (
@@ -66,7 +89,6 @@ export default function Home() {
             <stop offset="0%" stopColor="white" stopOpacity="0.4" />
             <stop offset="100%" stopColor="white" stopOpacity="0" />
           </radialGradient>
-
           <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FF00FF" />
             <stop offset="20%" stopColor="#CC00CC" />
@@ -79,12 +101,10 @@ export default function Home() {
             <stop offset="90%" stopColor="#000099" />
             <stop offset="100%" stopColor="#0000AA" />
           </linearGradient>
-
           <filter id="star-glow">
             <feGaussianBlur stdDeviation="0.3" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
-
           <filter id="background-blur">
             <feGaussianBlur stdDeviation="4" />
             <feColorMatrix
@@ -97,10 +117,8 @@ export default function Home() {
           </filter>
         </defs>
 
-        {/* Fondo negro base */}
         <rect width="100" height="100" fill="black" />
 
-        {/* Gradiente de fondo ajustado para más brillo */}
         <g filter="url(#background-blur)">
           <rect
             width="100"
@@ -112,7 +130,6 @@ export default function Home() {
           <circle cx="80" cy="80" r="30" fill="#000080" opacity="0.3" />
         </g>
 
-        {/* Estrellas pequeñas estáticas */}
         <g filter="url(#star-glow)">
           {Array.from({ length: 150 }).map((_, i) => (
             <circle
@@ -126,7 +143,6 @@ export default function Home() {
           ))}
         </g>
 
-        {/* Estrellas brillantes animadas */}
         <g>
           {shimmeringStars.map((star, i) => (
             <ShimmeringStar
@@ -138,55 +154,19 @@ export default function Home() {
           ))}
         </g>
 
-        {/* Destellos principales mejorados con movimientos más lentos */}
-        {[
-          [15, 10],
-          [85, 90],
-          [10, 50],
-          [90, 30],
-          [40, 35],
-          [60, 65],
-          [25, 75],
-          [75, 25],
-        ].map(([cx, cy], i) => (
-          <motion.g key={`main-star-${i}`}>
-            <motion.circle
-              cx={cx}
-              cy={cy}
-              r="0.3"
-              fill="white"
-              initial={{ opacity: 0.6 }}
-              animate={{
-                opacity: [0.6, 0.9, 0.6],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 5 + i * 0.7,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
+        {/* Partículas flotantes en movimiento */}
+        <g>
+          {floatingParticles.map((particle, i) => (
+            <FloatingParticle
+              key={`floating-particle-${i}`}
+              cx={particle.cx}
+              cy={particle.cy}
+              size={particle.size}
             />
-            <motion.circle
-              cx={cx}
-              cy={cy}
-              r="1.5"
-              fill="url(#star-shimmer)"
-              initial={{ opacity: 0.3 }}
-              animate={{
-                opacity: [0.3, 0.4, 0.3],
-                scale: [1, 1.1, 1],
-              }}
-              transition={{
-                duration: 6 + i * 0.7,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-          </motion.g>
-        ))}
+          ))}
+        </g>
       </svg>
 
-      {/* Content */}
       <div className="relative">
         <UploadPhoto />
       </div>
