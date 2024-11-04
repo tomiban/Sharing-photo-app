@@ -30,7 +30,7 @@
   left: 5%;
   top: 5%;
   z-index: 100;
-  width: 250px;
+  width: 15rem;
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
   animation: logoGlow 4s infinite;
 }
