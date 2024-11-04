@@ -59,7 +59,7 @@ const DeviceCarousel = ({
       scale = (viewportHeight * 0.85) / deviceConfig.height;
     }
 
-    setDeviceScale(Math.min(Math.max(scale, 0.7), 1)); // Aumentamos los límites del zoom
+    setDeviceScale(Math.min(Math.max(scale, 0.7 ), 1)); // Aumentamos los límites del zoom
   };
 
 
