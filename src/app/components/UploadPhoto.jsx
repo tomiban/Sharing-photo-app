@@ -117,6 +117,7 @@ const UploadPhoto = () => {
           type="file"
           id="photo-input"
           accept="image/*"
+          capture
           className="hidden"
           onChange={handleFileChange}
         />
