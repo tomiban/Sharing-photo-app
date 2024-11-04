@@ -33,7 +33,7 @@
   margin: 0 auto !important;
   min-width: initial !important;
   max-width: none !important;
-  min-height: 80vh !important; /* Aseguramos una altura mínima */
+  min-height: 70vh !important; /* Aseguramos una altura mínima */
 }
 
 .imageContainer {

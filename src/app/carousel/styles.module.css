@@ -185,6 +185,22 @@
 }
 
 
+@media (min-width: 1920px) {
+  .deviceWrapper {
+    width: 95% !important;
+    height: 90% !important;
+  }
+
+  .deviceWrapper :global(.marvel-device) {
+    transform: scale(1.2) !important;
+  }
+
+  .imageContainer {
+    aspect-ratio: 4/3 !important;
+  }
+}
+
+
 @keyframes fadeInOut {
   0% {
     opacity: 0;

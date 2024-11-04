@@ -5,6 +5,6 @@ export const DEVICE_CONFIGS = {
     width: 768,
     height: 1024,
     aspectRatio: 0.75,
-    defaultZoom: 1.2, // Aumentamos el zoom por defecto
+    defaultZoom: 1.1, // Aumentamos el zoom por defecto
   },
 };

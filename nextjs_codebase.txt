@@ -646,7 +646,7 @@ const QRCode = ({ url }) => (
     >
       <QRCodeSVG
         value={url}
-        size={230}
+        size={200}
         bgColor="white"
         fgColor="#000000"
         level="L"
@@ -718,26 +718,27 @@ export default RippleButton;
 ### Archivo: src\app\components\UploadPhoto.jsx ###
 # Client Component
 --------------------------------------------------------------------------------
-"use client"
+"use client";
 
-import React, { useState } from 'react';
-import imageCompression from 'browser-image-compression';
-import { supabase } from '../utils/supabaseClient';
-import { FaTimes } from 'react-icons/fa';
-import { toast } from 'react-toastify';
-import Image from 'next/image';
-import CameraIcon from './CameraIcon';
+import React, { useState } from "react";
+import imageCompression from "browser-image-compression";
+import { supabase } from "../utils/supabaseClient";
+import { FaTimes } from "react-icons/fa";
+import { toast } from "react-toastify";
+import Image from "next/image";
+import CameraIcon from "./CameraIcon";
+import { motion } from "framer-motion"; // Importa motion desde framer-motion
 
 const UploadPhoto = () => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const handleFileChange = async (e) => {
     const selectedFile = e.target.files?.[0];
 
-    if (selectedFile && selectedFile.type.startsWith('image/')) {
+    if (selectedFile && selectedFile.type.startsWith("image/")) {
       try {
         const options = {
           maxSizeMB: 3,
@@ -749,11 +750,11 @@ const UploadPhoto = () => {
         setFile(compressedFile);
         setPreview(URL.createObjectURL(compressedFile));
       } catch (error) {
-        console.error('Error al comprimir la imagen:', error);
-        toast.error('Hubo un problema al comprimir la imagen.');
+        console.error("Error al comprimir la imagen:", error);
+        toast.error("Hubo un problema al comprimir la imagen.");
       }
     } else {
-      toast.error('Por favor, selecciona un archivo de imagen válido.');
+      toast.error("Por favor, selecciona un archivo de imagen válido.");
       setFile(null);
       setPreview(null);
     }
@@ -762,13 +763,13 @@ const UploadPhoto = () => {
   const handleRemovePhoto = () => {
     setFile(null);
     setPreview(null);
-    const input = document.getElementById('photo-input');
-    if (input) input.value = '';
+    const input = document.getElementById("photo-input");
+    if (input) input.value = "";
   };
 
   const handleUpload = async () => {
     if (!file) {
-      toast.error('Por favor, selecciona una foto antes de compartir.');
+      toast.error("Por favor, selecciona una foto antes de compartir.");
       return;
     }
 
@@ -777,34 +778,38 @@ const UploadPhoto = () => {
     const fileName = `${Date.now()}_${file.name}`;
 
     const { data, error } = await supabase.storage
-      .from('photos')
+      .from("photos")
       .upload(fileName, file);
 
     if (error) {
-      console.error('Error al subir la foto:', error);
-      toast.error('Hubo un problema al compartir la foto. Por favor, inténtalo de nuevo.');
+      console.error("Error al subir la foto:", error);
+      toast.error(
+        "Hubo un problema al compartir la foto. Por favor, inténtalo de nuevo."
+      );
       setUploading(false);
       return;
     }
 
     const { data: publicUrlData } = supabase.storage
-      .from('photos')
+      .from("photos")
       .getPublicUrl(data.path);
 
     const imageUrl = publicUrlData.publicUrl;
 
     const { error: insertError } = await supabase
-      .from('uploads')
+      .from("uploads")
       .insert([{ image_url: imageUrl, comment: comment }]);
 
     if (insertError) {
-      console.error('Error al insertar en la base de datos:', insertError);
-      toast.error('Hubo un problema al compartir la foto. Por favor, inténtalo de nuevo.');
+      console.error("Error al insertar en la base de datos:", insertError);
+      toast.error(
+        "Hubo un problema al compartir la foto. Por favor, inténtalo de nuevo."
+      );
     } else {
-      toast.success('¡Foto compartida exitosamente! Pendiente de aprobación.');
+      toast.success("¡Foto compartida exitosamente! Pendiente de aprobación.");
       setFile(null);
       setPreview(null);
-      setComment('');
+      setComment("");
     }
 
     setUploading(false);
@@ -815,8 +820,8 @@ const UploadPhoto = () => {
       {/* Top section with logo - reduced margin */}
       <div className="flex-none flex justify-center">
         <div className="p-2 rounded-full">
-          <Image 
-            src="/logo-form.png" 
+          <Image
+            src="/logo-form.png"
             width={100}
             height={100}
             alt="Logo"
@@ -839,7 +844,7 @@ const UploadPhoto = () => {
         {/* Image preview/upload area - adjusted height */}
         <div className="relative flex-1 max-h-[72%]">
           <button
-            onClick={() => document.getElementById('photo-input').click()}
+            onClick={() => document.getElementById("photo-input").click()}
             className="w-full h-full bg-purple-800/20 rounded-3xl  backdrop-blur-md border border-white/10 flex flex-col items-center justify-center overflow-hidden transition-all hover:bg-purple-800/30 hover:border-white/20 shadow-lg active:scale-95" // Escala al presionar
           >
             {preview ? (
@@ -861,7 +866,9 @@ const UploadPhoto = () => {
               </>
             ) : (
               <div className="text-center p-4 space-y-2">
-                <div className="inline-block border border-white/20 p-4 rounded-full bg-purple-800/20 animate-pulse"> {/* Animación de pulso */}
+                <div className="inline-block border border-white/20 p-4 rounded-full bg-purple-800/20 animate-pulse">
+                  {" "}
+                  {/* Animación de pulso */}
                   <CameraIcon className="w-6 h-6 text-white" />
                 </div>
                 <p className="text-white/90 text-sm px-3 font-medium">
@@ -872,29 +879,35 @@ const UploadPhoto = () => {
           </button>
         </div>
 
-        {/* Comment input - reduced height */}
         <div className="flex-none h-[12%]">
           <textarea
             value={comment}
-            onChange={(e) => setComment(e.target.value)}
+            onChange={(e) => {
+              // Limita el texto a 189 caracteres
+              if (e.target.value.length <= 180) {
+                setComment(e.target.value);
+              }
+            }}
+            maxLength={180} // Límite hard de caracteres
             placeholder="Agrega un comentario..."
-            className="w-full h-full p-3 bg-purple-800/20 backdrop-blur-md text-white placeholder-white/50 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/25 transition-all hover:bg-purple-800/30 focus:bg-purple-800/30" // Hover y Focus transitions
+            className="w-full h-full p-3 bg-purple-800/20 backdrop-blur-md text-white placeholder-white/50 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/25 transition-all hover:bg-purple-800/30 focus:bg-purple-800/30"
           />
         </div>
 
-        {/* Share button - adjusted padding and margin */}
+        {/* Share button with framer-motion effect */}
         <div className="flex-none mb-4">
-          <button
+          <motion.button
+            whileTap={{ scale: 0.95 }} // Escala al hacer tap
             onClick={handleUpload}
             disabled={uploading}
-            className={`w-full py-3 rounded-xl text-white font-medium transition-all shadow-lg border border-white/10 active:scale-95 ${ // Escala al presionar
-              uploading 
-                ? 'bg-gray-500/50 cursor-not-allowed' 
-                : 'bg-pink-600 hover:bg-pink-700 active:bg-pink-700'
+            className={`w-full py-3 rounded-xl text-white font-medium transition-all shadow-lg border border-white/10 ${
+              uploading
+                ? "bg-gray-500/50 cursor-not-allowed"
+                : "bg-pink-600 hover:bg-pink-700 active:bg-pink-700"
             }`}
           >
-            {uploading ? 'Compartiendo...' : 'Compartir selfie'}
-          </button>
+            {uploading ? "Compartiendo..." : "Compartir selfie"}
+          </motion.button>
         </div>
       </div>
     </div>
@@ -965,7 +978,7 @@ export default CommentBubble;
 
 ### Archivo: src\app\components\DeviceCarousel\DeviceCarousel.jsx ###
 --------------------------------------------------------------------------------
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { DeviceFrameset } from "react-device-frameset";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade } from "swiper/modules";
@@ -993,19 +1006,52 @@ const DeviceCarousel = ({
       zoom = (height * 0.85) / deviceConfig.height;
     }
       
-    return Math.min(Math.max(zoom, 0.788), 1.); // Aumentamos los límites del zoom
+    return Math.min(Math.max(zoom, 0.788), 1); // Aumentamos los límites del zoom
   }, [width, height, deviceConfig]);
+
+  const [viewportWidth, setViewportWidth] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [deviceScale, setDeviceScale] = useState(1);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+      setViewportHeight(window.innerHeight);
+      calculateDeviceScale();
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Inicializar las dimensiones del viewport
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const calculateDeviceScale = () => {
+    const viewportRatio = viewportHeight / viewportWidth;
+    const deviceRatio = deviceConfig.height / deviceConfig.width;
+
+    let scale;
+    if (viewportRatio > deviceRatio) {
+      scale = (viewportWidth * 0.85) / deviceConfig.width; // Reducimos de 0.97 a 0.85 para hacer el device más grande
+    } else {
+      scale = (viewportHeight * 0.85) / deviceConfig.height;
+    }
+
+    setDeviceScale(Math.min(Math.max(scale, 0.788), 1)); // Aumentamos los límites del zoom
+  };
 
 
   return (
-    <div className="relative flex w-full h-full">
+   <div className="relative flex w-full h-full">
       {/* Dispositivo centrado */}
       <div className="flex justify-center items-center w-full">
         <div className={styles.deviceWrapper}>
-          <DeviceFrameset 
+          <DeviceFrameset
             device={deviceConfig.device}
             color={deviceConfig.color}
-            zoom={calculatedZoom}
+            zoom={deviceScale}
             orientation="portrait"
           >
             <div className={styles.swiperContainer}>
@@ -1054,7 +1100,7 @@ export const DEVICE_CONFIGS = {
     width: 768,
     height: 1024,
     aspectRatio: 0.75,
-    defaultZoom: 1.2, // Aumentamos el zoom por defecto
+    defaultZoom: 1.1, // Aumentamos el zoom por defecto
   },
 };
 --------------------------------------------------------------------------------
@@ -1895,34 +1941,184 @@ export async function middleware(req) {
 --------------------------------------------------------------------------------
 
 ### Archivo: src\app\page.jsx ###
+# Client Component
 --------------------------------------------------------------------------------
-import Image from "next/image";
-import UploadPhoto from "@/app/components/UploadPhoto"
-export default function Home() {
+"use client";
+import React from "react";
+import { motion } from "framer-motion";
+import UploadPhoto from "@/app/components/UploadPhoto";
+
+// Componente para estrella brillante animada
+const ShimmeringStar = ({ cx, cy, size = 0.15 }) => {
   return (
-    <main className="min-h-screen w-full relative">
-      {/* Background image */}
-      <div className="fixed inset-0">
-        <Image 
-          src="/background.jpg"
-          alt="Background"
-          fill
-          className="object-cover object-center"
-          sizes="100vw"
-          priority
-          quality={85}
-        />
-        {/* Purple gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-purple-900/30 to-purple-800/30 backdrop-blur-[2px]" />
-      </div>
-      
-      {/* Content */}
+    <motion.g>
+      <motion.circle
+        cx={cx}
+        cy={cy}
+        r={size}
+        fill="white"
+        initial={{ opacity: 0.4 }}
+        animate={{
+          opacity: [0.4, 0.7, 0.4],
+          scale: [1, 1.1, 1],
+        }}
+        transition={{
+          duration: Math.random() * 5 + 4,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+      <motion.circle
+        cx={cx}
+        cy={cy}
+        r={size * 3}
+        fill="url(#star-shimmer)"
+        initial={{ opacity: 0.1 }}
+        animate={{
+          opacity: [0.1, 0.2, 0.1],
+          scale: [1, 1.05, 1],
+        }}
+        transition={{
+          duration: Math.random() * 6 + 5,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+      />
+    </motion.g>
+  );
+};
+
+// Componente para partículas flotantes animadas
+const FloatingParticle = ({ cx, cy, size }) => (
+  <motion.circle
+    cx={cx}
+    cy={cy}
+    r={size}
+    fill="white"
+    initial={{ opacity: 0.2, x: cx, y: cy }}
+    animate={{
+      opacity: [0.2, 0.4, 0.2],
+      x: [cx, cx + Math.random() * 2 - 1, cx],
+      y: [cy, cy + Math.random() * 2 - 1, cy],
+    }}
+    transition={{
+      duration: Math.random() * 6 + 4,
+      repeat: Infinity,
+      ease: "easeInOut",
+    }}
+  />
+);
+
+export default function Home() {
+  const shimmeringStars = Array.from({ length: 40 }, () => ({
+    cx: Math.random() * 100,
+    cy: Math.random() * 100,
+    size: Math.random() * 0.15 + 0.05,
+  }));
+
+  const floatingParticles = Array.from({ length: 50 }, () => ({
+    cx: Math.random() * 100,
+    cy: Math.random() * 100,
+    size: Math.random() * 0.08 + 0.02,
+  }));
+
+  return (
+    <div className="min-h-screen w-full relative">
+      <svg
+        className="fixed inset-0 w-full h-full"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="xMidYMid slice"
+      >
+        <defs>
+          <radialGradient id="star-shimmer" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="white" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="white" stopOpacity="0" />
+          </radialGradient>
+          <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FF00FF" />
+            <stop offset="20%" stopColor="#CC00CC" />
+            <stop offset="35%" stopColor="#660066" />
+            <stop offset="45%" stopColor="#300030" />
+            <stop offset="55%" stopColor="#200020" />
+            <stop offset="65%" stopColor="#300030" />
+            <stop offset="70%" stopColor="#000066" />
+            <stop offset="80%" stopColor="#000080" />
+            <stop offset="90%" stopColor="#000099" />
+            <stop offset="100%" stopColor="#0000AA" />
+          </linearGradient>
+          <filter id="star-glow">
+            <feGaussianBlur stdDeviation="0.3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+          <filter id="background-blur">
+            <feGaussianBlur stdDeviation="4" />
+            <feColorMatrix
+              type="matrix"
+              values="1 0 0 0 0
+                     0 1 0 0 0
+                     0 0 1 0 0
+                     0 0 0 0.9 0"
+            />
+          </filter>
+        </defs>
+
+        <rect width="100" height="100" fill="black" />
+
+        <g filter="url(#background-blur)">
+          <rect
+            width="100"
+            height="100"
+            fill="url(#bg-gradient)"
+            opacity="0.85"
+          />
+          <circle cx="20" cy="20" r="30" fill="#660066" opacity="0.3" />
+          <circle cx="80" cy="80" r="30" fill="#000080" opacity="0.3" />
+        </g>
+
+        <g filter="url(#star-glow)">
+          {Array.from({ length: 150 }).map((_, i) => (
+            <circle
+              key={`static-star-${i}`}
+              cx={Math.random() * 100}
+              cy={Math.random() * 100}
+              r={Math.random() * 0.1 + 0.02}
+              fill="white"
+              opacity={Math.random() * 0.3 + 0.1}
+            />
+          ))}
+        </g>
+
+        <g>
+          {shimmeringStars.map((star, i) => (
+            <ShimmeringStar
+              key={`shimmering-star-${i}`}
+              cx={star.cx}
+              cy={star.cy}
+              size={star.size}
+            />
+          ))}
+        </g>
+
+        {/* Partículas flotantes en movimiento */}
+        <g>
+          {floatingParticles.map((particle, i) => (
+            <FloatingParticle
+              key={`floating-particle-${i}`}
+              cx={particle.cx}
+              cy={particle.cy}
+              size={particle.size}
+            />
+          ))}
+        </g>
+      </svg>
+
       <div className="relative">
         <UploadPhoto />
       </div>
-    </main>
+    </div>
   );
 }
+
 --------------------------------------------------------------------------------
 
 ### Archivo: src\app\admin\page.jsx ###
@@ -2186,8 +2382,8 @@ export default function CarouselPage() {
         <Image
           src="/logo-form.png"
           alt="Real Meet 2024"
-          width={200}
-          height={60}
+          width={260}
+          height={80}
           priority
         />
       </div>
@@ -2531,5 +2727,5 @@ Layouts: 0
 Components: 20
 API Routes: 0
 Hooks: 2
-Server Components: 20
-Client Components: 13
+Server Components: 19
+Client Components: 14

@@ -297,7 +297,7 @@ export default function CarouselPage() {
         {isFullscreen ? <FaCompress size={18} /> : <FaExpand size={18} />}
       </button>
 
-      <div className="fixed top-20 right-24 z-50">
+      <div className="fixed top-20 right-16 z-50">
         <QRCode url={process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"} />
       </div>
 
