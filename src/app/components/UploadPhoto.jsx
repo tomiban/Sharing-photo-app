@@ -105,11 +105,10 @@ const UploadPhoto = () => {
 
   return (
     <div className="h-[100dvh] flex flex-col px-4 max-w-md mx-auto">
-      {/* Top section with logo - reduced margin */}
       <div className="flex-none flex justify-center">
         <div className="p-2 rounded-full">
           <Image
-            src="/logo-form.png"
+            src="/images/logo.png"
             width={100}
             height={100}
             alt="Logo"
@@ -130,7 +129,6 @@ const UploadPhoto = () => {
           onChange={handleFileChange}
         />
 
-        {/* Image preview/upload area - adjusted height */}
         <div className="relative flex-1 max-h-[72%]">
           <button
             onClick={() => document.getElementById("photo-input").click()}
@@ -189,11 +187,9 @@ const UploadPhoto = () => {
           </button>
         </div>
 
-        {/* Emoji Picker optimizado para móvil */}
         {showEmojiPicker && (
           <div className="fixed inset-x-0 bottom-0 z-50 pb-safe">
             <div className="relative">
-              {/* Header del picker */}
               <div className="flex items-center justify-between px-4 py-2 bg-purple-900/95 border-b border-white/10 backdrop-blur-md">
                 <span className="text-white/90 text-sm font-medium">Emojis</span>
                 <button
@@ -203,8 +199,7 @@ const UploadPhoto = () => {
                   <FaTimes className="w-4 h-4" />
                 </button>
               </div>
-              
-              {/* Emoji Picker */}
+
               <EmojiPicker
                 onEmojiClick={onEmojiClick}
                 width="100%"
@@ -220,7 +215,7 @@ const UploadPhoto = () => {
               />
             </div>
             
-            {/* Overlay para cerrar al tocar fuera */}
+     
             <div 
               className="fixed inset-0 bg-black/40 -z-10"
               onClick={() => setShowEmojiPicker(false)}
@@ -229,7 +224,6 @@ const UploadPhoto = () => {
         )}
       </div>
 
-        {/* Share button with framer-motion effect */}
         <div className="flex-none mb-4">
           <motion.button
             whileTap={{ scale: 0.95 }} // Escala al hacer tap

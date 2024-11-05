@@ -231,11 +231,10 @@ const CarouselPage = () => {
 
       {/* Main Grid Layout */}
       <div className={styles.gridLayout}>
-        {/* Left Section */}
         <div className={styles.leftSection}>
           <div className={styles.logoContainer}>
             <Image
-              src="/logo-form.png"
+              src="/images/logo.png"
               alt="Real Meet 2024"
               width={240} // Reducido de 280
               height={60} // Reducido de 80
@@ -245,18 +244,17 @@ const CarouselPage = () => {
           <CommentBubble comment={currentComment} />
         </div>
 
-        {/* Center Section */}
+
         <div className={styles.centerSection}>
           <div className={styles.deviceWrapper}>
             <PolaroidCarousel
               photos={photos}
               onSlideChange={handleSlideChange}
-              decorationType="TAPE_LIGHT" // o "PIN" o "TAPE_LIGHT"
+              decorationType="TAPE_LIGHT" 
             />
           </div>
         </div>
 
-        {/* Right Section */}
         <div className={styles.rightSection}>
           <div className="mt-16 w-full flex justify-center">
             <QRCode
@@ -265,10 +263,10 @@ const CarouselPage = () => {
           </div>
           <div className="mb-12 w-full flex justify-center">
             <Image
-              src="/logo-blanco.png"
+              src="/images/logo-blanco.png"
               alt="Logo empresa"
-              width={180} // Reducido de 210
-              height={100} // Reducido de 120
+              width={180} 
+              height={100} 
               className="object-contain opacity-90 hover:opacity-100 transition-opacity"
               priority
             />
@@ -276,7 +274,6 @@ const CarouselPage = () => {
         </div>
       </div>
 
-      {/* Fullscreen Button */}
       <button
         onClick={toggleFullscreen}
         className="fixed top-4 right-4 w-10 h-10 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-full shadow-xl border border-white/50 transition-all duration-300 z-50"
@@ -285,7 +282,6 @@ const CarouselPage = () => {
         {isFullscreen ? <FaCompress size={18} /> : <FaExpand size={18} />}
       </button>
 
-      {/* Flash Effect */}
       {showFlash && <div className={styles.flash} />}
     </div>
   );

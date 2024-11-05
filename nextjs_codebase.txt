@@ -572,53 +572,12 @@ const LoginForm = () => {
 export default LoginForm;
 --------------------------------------------------------------------------------
 
-### Archivo: src\app\components\Navbar.jsx ###
---------------------------------------------------------------------------------
-// src/components/Navbar.jsx
-
-import React from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-
-const Navbar = () => {
-  return (
-    <nav className="bg-primary-dark text-white py-4">
-      <div className="container mx-auto flex justify-between items-center px-4">
-        <Link href="/">
-        <Image
-            src="/logo.png" // Ruta relativa a la carpeta public
-            alt="Logo"
-            width={60} // Ajusta el ancho del logo
-            height={50}  // Ajusta el alto del logo
-          />
-        </Link>
-        <div className="space-x-4">
-          <Link href="/">
-          Inicio
-          </Link>
-          <Link href="/carousel/">
-            Carousel
-          </Link>
-          <Link href="/admin/">
-            Admin
-          </Link>
-        </div>
-      </div>
-    </nav>
-  );
-};
-
-export default Navbar;
-
---------------------------------------------------------------------------------
-
 ### Archivo: src\app\components\PolaroidCarousel.jsx ###
 --------------------------------------------------------------------------------
 import React from 'react';
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade } from "swiper/modules";
 import Image from "next/image";
-import { RoughNotation } from "react-rough-notation";
 import { Permanent_Marker } from 'next/font/google';
 import "swiper/css";
 import "swiper/css/effect-fade";
@@ -650,14 +609,14 @@ const DECORATIONS = {
 const PolaroidCarousel = ({ 
   photos, 
   onSlideChange,
-  decorationType = 'TAPE_LIGHT'
+  decorationType = 'TAPE_LIGHT',
+  slideInterval = 5000 // Añadido para permitir configurar el intervalo desde fuera
 }) => {
   const decoration = DECORATIONS[decorationType];
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <div className="relative w-[min(85vh,_550px)] h-[min(90vh,_850px)] min-h-[500px] bg-white shadow-2xl flex flex-col">
-        {/* Decoración superior configurable */}
+      <div className="relative w-[min(80vh,_500px)] h-[min(85vh,_800px)] min-h-[450px] bg-white shadow-2xl flex flex-col">
         <div 
           className={`absolute -top-6 left-1/2 transform -translate-x-1/2 ${decoration.className}`}
           style={decoration.style}
@@ -669,17 +628,23 @@ const PolaroidCarousel = ({
             <Swiper
               effect="fade"
               autoplay={{
-                delay: 5000,
+                delay: slideInterval,
                 disableOnInteraction: false,
               }}
               modules={[Autoplay, EffectFade]}
               onSlideChange={onSlideChange}
               className="w-full h-full"
+              loop={true} // Habilitamos el loop infinito
+              allowTouchMove={false} // Deshabilitamos el arrastre manual para mantener la automatización
+              speed={1000} // Ajustamos la velocidad de transición
+              fadeEffect={{ 
+                crossFade: true // Mejora el efecto de transición fade
+              }}
             >
               {photos.map((photo) => (
                 <SwiperSlide key={photo.id} className="w-full h-full">
                   <div className="relative w-full h-full bg-black">
-                    <div className="absolute inset-0 scale-[0.] transform-gpu">
+                    <div className="absolute inset-0">
                       <Image
                         src={photo.url || photo.image_url}
                         alt={photo.comment || 'Selfie del evento'}
@@ -766,11 +731,11 @@ const QRCode = ({ url }) => (
         `,
         transition: 'all 0.3s ease'
       }}
-      className="hover:brightness-110 hover:scale-105"
+      className="hover:brightness-110 hover:scale-105 flex flex-col justify-center items-center"
     >
       <QRCodeSVG
         value={url}
-        size={220}
+        size={180}
         bgColor="white"
         fgColor="#000000"
         level="L"
@@ -851,13 +816,16 @@ import { FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
 import Image from "next/image";
 import CameraIcon from "./CameraIcon";
-import { motion } from "framer-motion"; // Importa motion desde framer-motion
+import { motion } from "framer-motion"; 
+import { BsEmojiSmile } from "react-icons/bs"; // Importa el icono de emoji
+import EmojiPicker from "emoji-picker-react";
 
 const UploadPhoto = () => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [comment, setComment] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const handleFileChange = async (e) => {
     const selectedFile = e.target.files?.[0];
@@ -939,9 +907,13 @@ const UploadPhoto = () => {
     setUploading(false);
   };
 
+  const onEmojiClick = (emojiObject) => {
+    setComment((prevComment) => prevComment + emojiObject.emoji);
+    setShowEmojiPicker(false);
+  };
+
   return (
     <div className="h-[100dvh] flex flex-col px-4 max-w-md mx-auto">
-      {/* Top section with logo - reduced margin */}
       <div className="flex-none flex justify-center">
         <div className="p-2 rounded-full">
           <Image
@@ -966,7 +938,6 @@ const UploadPhoto = () => {
           onChange={handleFileChange}
         />
 
-        {/* Image preview/upload area - adjusted height */}
         <div className="relative flex-1 max-h-[72%]">
           <button
             onClick={() => document.getElementById("photo-input").click()}
@@ -1003,23 +974,65 @@ const UploadPhoto = () => {
             )}
           </button>
         </div>
-
-        <div className="flex-none h-[12%]">
+        <div className="flex-none h-[12%] relative">
+        <div className="relative w-full h-full flex items-center">
           <textarea
             value={comment}
             onChange={(e) => {
-              // Limita el texto a 189 caracteres
               if (e.target.value.length <= 180) {
                 setComment(e.target.value);
               }
             }}
-            maxLength={180} // Límite hard de caracteres
+            maxLength={180}
             placeholder="Agrega un comentario..."
-            className="w-full h-full p-3 bg-purple-800/20 backdrop-blur-md text-white placeholder-white/50 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/25 transition-all hover:bg-purple-800/30 focus:bg-purple-800/30"
+            className="w-full h-full p-3 pr-12 bg-purple-800/20 backdrop-blur-md text-white placeholder-white/50 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/25 transition-all hover:bg-purple-800/30 focus:bg-purple-800/30"
           />
+          <button
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className="absolute right-3 bottom-3 p-2 text-white/80 hover:text-white transition-colors"
+            type="button"
+          >
+            <BsEmojiSmile className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* Share button with framer-motion effect */}
+        {showEmojiPicker && (
+          <div className="fixed inset-x-0 bottom-0 z-50 pb-safe">
+            <div className="relative">
+              <div className="flex items-center justify-between px-4 py-2 bg-purple-900/95 border-b border-white/10 backdrop-blur-md">
+                <span className="text-white/90 text-sm font-medium">Emojis</span>
+                <button
+                  onClick={() => setShowEmojiPicker(false)}
+                  className="p-2 text-white/80 hover:text-white"
+                >
+                  <FaTimes className="w-4 h-4" />
+                </button>
+              </div>
+
+              <EmojiPicker
+                onEmojiClick={onEmojiClick}
+                width="100%"
+                height={300}
+                theme="dark"
+                skinTonesDisabled
+                searchDisabled
+                lazyLoadEmojis
+                previewConfig={{
+                  showPreview: false
+                }}
+                categories={['smileys_people', 'animals_nature', 'food_drink', 'objects', 'symbols', 'flags']}
+              />
+            </div>
+            
+     
+            <div 
+              className="fixed inset-0 bg-black/40 -z-10"
+              onClick={() => setShowEmojiPicker(false)}
+            />
+          </div>
+        )}
+      </div>
+
         <div className="flex-none mb-4">
           <motion.button
             whileTap={{ scale: 0.95 }} // Escala al hacer tap
@@ -1063,7 +1076,6 @@ const CommentBubble = ({ comment }) => {
     }, 300);
   }, [comment]);
 
-  // Efecto de destello aleatorio
   useEffect(() => {
     const glowInterval = setInterval(() => {
       setIsGlowing(true);
@@ -2327,7 +2339,7 @@ const CarouselPage = () => {
 
   if (loading) {
     return (
-      <div className={styles.container}>
+      <div className={`${styles.container} flex items-center justify-center`}>
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white" />
       </div>
     );
@@ -2361,44 +2373,42 @@ const CarouselPage = () => {
 
       {/* Main Grid Layout */}
       <div className={styles.gridLayout}>
-        {/* Left Section */}
         <div className={styles.leftSection}>
           <div className={styles.logoContainer}>
             <Image
               src="/logo-form.png"
               alt="Real Meet 2024"
-              width={280}
-              height={80}
+              width={240} // Reducido de 280
+              height={60} // Reducido de 80
               priority
             />
           </div>
           <CommentBubble comment={currentComment} />
         </div>
 
-        {/* Center Section */}
+
         <div className={styles.centerSection}>
           <div className={styles.deviceWrapper}>
             <PolaroidCarousel
               photos={photos}
               onSlideChange={handleSlideChange}
-              decorationType="TAPE_LIGHT" // o "PIN" o "TAPE_LIGHT"
+              decorationType="TAPE_LIGHT" 
             />
           </div>
         </div>
 
-        {/* Right Section */}
         <div className={styles.rightSection}>
-          <div className="mt-20">
+          <div className="mt-16 w-full flex justify-center">
             <QRCode
               url={process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}
             />
           </div>
-          <div className="mb-8">
+          <div className="mb-12 w-full flex justify-center">
             <Image
               src="/logo-blanco.png"
               alt="Logo empresa"
-              width={210}
-              height={120}
+              width={180} 
+              height={100} 
               className="object-contain opacity-90 hover:opacity-100 transition-opacity"
               priority
             />
@@ -2406,7 +2416,6 @@ const CarouselPage = () => {
         </div>
       </div>
 
-      {/* Fullscreen Button */}
       <button
         onClick={toggleFullscreen}
         className="fixed top-4 right-4 w-10 h-10 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-full shadow-xl border border-white/50 transition-all duration-300 z-50"
@@ -2415,7 +2424,6 @@ const CarouselPage = () => {
         {isFullscreen ? <FaCompress size={18} /> : <FaExpand size={18} />}
       </button>
 
-      {/* Flash Effect */}
       {showFlash && <div className={styles.flash} />}
     </div>
   );
@@ -2679,11 +2687,11 @@ export default AdminLogin
 RESUMEN DEL PROYECTO NEXT.JS 14
 ================================================================================
 
-Total de archivos: 31
+Total de archivos: 30
 Pages: 0
 Layouts: 0
-Components: 18
+Components: 17
 API Routes: 0
 Hooks: 2
-Server Components: 17
+Server Components: 16
 Client Components: 14

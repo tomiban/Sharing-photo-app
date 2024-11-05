@@ -16,7 +16,6 @@ const CommentBubble = ({ comment }) => {
     }, 300);
   }, [comment]);
 
-  // Efecto de destello aleatorio
   useEffect(() => {
     const glowInterval = setInterval(() => {
       setIsGlowing(true);
