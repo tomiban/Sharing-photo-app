@@ -3,27 +3,27 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useWindowSize } from "@react-hook/window-size";
 import { FaExpand, FaCompress } from "react-icons/fa";
 import Confetti from "react-confetti";
+import Image from "next/image";
 import { supabase } from "@/app/utils/supabaseClient";
-import DeviceCarousel from "@/app/components/DeviceCarousel/DeviceCarousel";
+import PolaroidCarousel from "@/app/components/PolaroidCarousel";
 import CommentBubble from "@/app/components/CommentBubble/CommentBubble";
 import QRCode from "@/app/components/QRCode";
-import { DEVICE_CONFIGS } from "@/app/components/DeviceCarousel/config";
+
 import styles from "./styles.module.css";
-import Image from "next/image";
 
 const DEFAULT_SETTINGS = {
   slide_interval: 5000,
-  photos_limit: 'all',
+  photos_limit: "all",
   flash_enabled: true,
   flash_interval: 10000,
   emojis_enabled: true,
   emoji_interval: 1000,
   selected_emojis: "❤️,🧡,💛,💚,💙,💜,🎉,🎊,🎈,🥳",
   confetti_enabled: true,
-  confetti_interval: 30000
+  confetti_interval: 30000,
 };
 
-export default function CarouselPage() {
+const CarouselPage = () => {
   const [width, height] = useWindowSize();
   const [photos, setPhotos] = useState([]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
@@ -36,19 +36,13 @@ export default function CarouselPage() {
   const [currentComment, setCurrentComment] = useState("");
 
   const fetchSettings = async () => {
-    console.log('Fetching carousel settings...');
     const { data, error } = await supabase
-      .from('carousel_settings')
-      .select('*')
+      .from("carousel_settings")
+      .select("*")
       .single();
 
-    console.log('Settings response:', { data, error });
-
     if (!error && data) {
-      console.log('Updating settings:', data);
       setSettings(data);
-    } else {
-      console.error('Error fetching settings:', error);
     }
   };
 
@@ -60,12 +54,11 @@ export default function CarouselPage() {
         .eq("approved", true)
         .order("created_at", { ascending: false });
 
-      if (settings?.photos_limit && settings.photos_limit !== 'all') {
+      if (settings?.photos_limit && settings.photos_limit !== "all") {
         query = query.limit(parseInt(settings.photos_limit));
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
       setPhotos(data || []);
     } catch (error) {
@@ -74,6 +67,35 @@ export default function CarouselPage() {
       setLoading(false);
     }
   }, [settings?.photos_limit]);
+
+  const triggerFlash = useCallback(() => {
+    if (settings.flash_enabled) {
+      setShowFlash(true);
+      setTimeout(() => setShowFlash(false), 200);
+    }
+  }, [settings.flash_enabled]);
+
+  const createFloatingItem = useCallback(() => {
+    if (settings.emojis_enabled) {
+      const emojis = settings.selected_emojis
+        .split(",")
+        .filter((emoji) => emoji.trim());
+      const newItem = {
+        id: Date.now(),
+        emoji: emojis[Math.floor(Math.random() * emojis.length)].trim(),
+        left: `${Math.random() * 100}%`,
+        animationDuration: `${2 + Math.random() * 3}s`,
+        size: `${1.5 + Math.random() * 1}rem`,
+      };
+
+      setFloatingItems((prev) => [...prev, newItem]);
+      setTimeout(() => {
+        setFloatingItems((prev) =>
+          prev.filter((item) => item.id !== newItem.id)
+        );
+      }, parseFloat(newItem.animationDuration) * 1000);
+    }
+  }, [settings.emojis_enabled, settings.selected_emojis]);
 
   useEffect(() => {
     const disableScroll = () => {
@@ -99,36 +121,9 @@ export default function CarouselPage() {
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-
-    return () => {
+    return () =>
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
   }, []);
-
-  const triggerFlash = useCallback(() => {
-    if (settings.flash_enabled) {
-      setShowFlash(true);
-      setTimeout(() => setShowFlash(false), 200);
-    }
-  }, [settings.flash_enabled]);
-
-  const createFloatingItem = useCallback(() => {
-    if (settings.emojis_enabled) {
-      const emojis = settings.selected_emojis.split(',').filter(emoji => emoji.trim());
-      const newItem = {
-        id: Date.now(),
-        emoji: emojis[Math.floor(Math.random() * emojis.length)].trim(),
-        left: `${Math.random() * 100}%`,
-        animationDuration: `${2 + Math.random() * 3}s`,
-        size: `${1.5 + Math.random() * 1}rem`,
-      };
-
-      setFloatingItems((prev) => [...prev, newItem]);
-      setTimeout(() => {
-        setFloatingItems((prev) => prev.filter((item) => item.id !== newItem.id));
-      }, parseFloat(newItem.animationDuration) * 1000);
-    }
-  }, [settings.emojis_enabled, settings.selected_emojis]);
 
   useEffect(() => {
     if (settings) {
@@ -156,38 +151,30 @@ export default function CarouselPage() {
   }, [settings, fetchPhotos, createFloatingItem, triggerFlash]);
 
   useEffect(() => {
-    console.log('Setting up realtime subscriptions...');
     const channel = supabase
-      .channel('carousel-changes')
+      .channel("carousel-changes")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'carousel_settings'
+          event: "*",
+          schema: "public",
+          table: "carousel_settings",
         },
-        (payload) => {
-          console.log('Settings changed:', payload);
-          fetchSettings();
-        }
+        () => fetchSettings()
       )
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: '*',
-          schema: 'public',
-          table: 'uploads',
-          filter: 'approved=eq.true'
+          event: "*",
+          schema: "public",
+          table: "uploads",
+          filter: "approved=eq.true",
         },
-        (payload) => {
-          console.log('Photos changed:', payload);
-          fetchPhotos();
-        }
+        () => fetchPhotos()
       )
       .subscribe();
 
     return () => {
-      console.log('Cleaning up subscriptions...');
       supabase.removeChannel(channel);
     };
   }, [fetchPhotos]);
@@ -204,6 +191,10 @@ export default function CarouselPage() {
     }
   };
 
+  const handleSlideChange = (swiper) => {
+    setCurrentComment(photos[swiper.realIndex]?.comment || "");
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -212,34 +203,9 @@ export default function CarouselPage() {
     );
   }
 
-  const handleSlideChange = (swiper) => {
-    setCurrentComment(photos[swiper.realIndex]?.comment || "");
-  };
-
   return (
     <div className={styles.container}>
-      <div className={styles.logoContainer}>
-        <Image
-          src="/logo-form.png"
-          alt="Real Meet 2024"
-          width={260}
-          height={80}
-          priority
-        />
-      </div>
-
-      <CommentBubble comment={currentComment} />
-
-      <div className={styles.backgroundEffects}>
-        <div className={styles.ambientEffect} />
-        <div className={styles.starLayer1} />
-        <div className={styles.starLayer2} />
-        <div className={styles.brightStar} style={{ top: "15%", left: "20%" }} />
-        <div className={styles.brightStar} style={{ top: "25%", right: "30%" }} />
-        <div className={styles.brightStar} style={{ bottom: "30%", left: "25%" }} />
-        <div className={styles.brightStar} style={{ bottom: "20%", right: "15%" }} />
-      </div>
-
+      {/* Confetti Effect */}
       <Confetti
         width={width}
         height={height}
@@ -248,6 +214,7 @@ export default function CarouselPage() {
         recycle={false}
       />
 
+      {/* Floating Emojis */}
       {floatingItems.map((item) => (
         <div
           key={item.id}
@@ -262,33 +229,54 @@ export default function CarouselPage() {
         </div>
       ))}
 
-      <main className={styles.mainContent}>
-        <div className={styles.carouselLayout}>
+      {/* Main Grid Layout */}
+      <div className={styles.gridLayout}>
+        {/* Left Section */}
+        <div className={styles.leftSection}>
+          <div className={styles.logoContainer}>
+            <Image
+              src="/logo-form.png"
+              alt="Real Meet 2024"
+              width={280}
+              height={80}
+              priority
+            />
+          </div>
+          <CommentBubble comment={currentComment} />
+        </div>
+
+        {/* Center Section */}
+        <div className={styles.centerSection}>
           <div className={styles.deviceWrapper}>
-            <DeviceCarousel
+            <PolaroidCarousel
               photos={photos}
-              deviceConfig={DEVICE_CONFIGS[selectedDevice]}
-              isFullscreen={isFullscreen}
-              width={width}
-              height={height}
               onSlideChange={handleSlideChange}
-              autoplayDelay={settings.slide_interval}
+              decorationType="TAPE_LIGHT" // o "PIN" o "TAPE_LIGHT"
             />
           </div>
         </div>
-      </main>
 
-      <div className="fixed bottom-8 right-8 z-50">
-        <Image
-          src="/logo-blanco.png"
-          alt="Logo empresa"
-          width={200}
-          height={120}
-          className="object-contain opacity-90 hover:opacity-100 transition-opacity"
-          priority
-        />
+        {/* Right Section */}
+        <div className={styles.rightSection}>
+          <div className="mt-20">
+            <QRCode
+              url={process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}
+            />
+          </div>
+          <div className="mb-8">
+            <Image
+              src="/logo-blanco.png"
+              alt="Logo empresa"
+              width={210}
+              height={120}
+              className="object-contain opacity-90 hover:opacity-100 transition-opacity"
+              priority
+            />
+          </div>
+        </div>
       </div>
 
+      {/* Fullscreen Button */}
       <button
         onClick={toggleFullscreen}
         className="fixed top-4 right-4 w-10 h-10 flex items-center justify-center bg-black/40 hover:bg-black/60 text-white rounded-full shadow-xl border border-white/50 transition-all duration-300 z-50"
@@ -297,11 +285,10 @@ export default function CarouselPage() {
         {isFullscreen ? <FaCompress size={18} /> : <FaExpand size={18} />}
       </button>
 
-      <div className="fixed top-20 right-16 z-50">
-        <QRCode url={process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"} />
-      </div>
-
+      {/* Flash Effect */}
       {showFlash && <div className={styles.flash} />}
     </div>
   );
-}
+};
+
+export default CarouselPage;

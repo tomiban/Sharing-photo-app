@@ -41,7 +41,7 @@ const CommentBubble = ({ comment }) => {
           ${styles.commentText} 
           ${isTransitioning ? styles.fadeOut : styles.fadeIn}
         `}>
-          {displayedComment}
+        {displayedComment || '❤️ ❤️ ❤️'}
         </p>
 
         <div className={styles.decorationTop} />

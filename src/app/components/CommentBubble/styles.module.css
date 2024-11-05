@@ -1,12 +1,11 @@
 .commentBubble {
-    position: fixed;
-    left: 2%;
-    top: 40%;
-    width: 20rem;
+    position: relative;
+    width: 22rem;
+    max-width: 90vw;
+    margin: 1rem 0; /* Reducido de 2rem a 1rem */
     z-index: 50;
 }
 
-/* Efecto de flotación continua */
 .floating {
     animation: float 6s ease-in-out infinite;
 }
@@ -28,12 +27,6 @@
         0 4px 24px -1px rgba(0, 0, 0, 0.2),
         0 0 16px -2px rgba(0, 0, 0, 0.1),
         inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-    height: 100%;
-}
-
-/* Efecto de destello */
-.glow {
-    animation: glowPulse 1s ease-in-out;
 }
 
 .commentText {
@@ -55,6 +48,10 @@
     50% {
         transform: translateY(-10px);
     }
+}
+
+.glow {
+    animation: glowPulse 1s ease-in-out;
 }
 
 @keyframes glowPulse {
@@ -109,27 +106,16 @@
     }
 }
 
-/* Mantener los media queries como estaban */
-@media (max-width: 1200px) {
+@media (max-width: 1023px) {
     .commentBubble {
-        bottom: 2rem;
-        top: auto;
-        left: 50%;
-        transform: translateX(-50%);
-        width: min(90%, 400px);
-    }
-    
-    .floating {
-        animation: floatHorizontal 6s ease-in-out infinite;
+        margin: -1rem auto 1rem; /* Agregado margin-top negativo para subirlo */
+        width: min(90%, 22rem);
     }
 }
 
-/* Animación horizontal para móviles */
-@keyframes floatHorizontal {
-    0%, 100% {
-        transform: translateX(-50%) translateY(0);
-    }
-    50% {
-        transform: translateX(-50%) translateY(-5px);
+@media (min-width: 1024px) {
+    .commentBubble {
+        margin: -1rem 0 2rem; /* Agregado margin-top negativo para subirlo en desktop */
+        width: 22rem;
     }
 }

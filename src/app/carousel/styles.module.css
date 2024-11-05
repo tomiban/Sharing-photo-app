@@ -3,117 +3,75 @@
   inset: 0;
   width: 100vw;
   height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: linear-gradient(125deg, 
-    rgba(255, 32, 173, 0.35) 0%,
-    rgba(190, 24, 185, 0.3) 25%,
-    rgba(43, 9, 107, 0.95) 50%,
-    rgba(8, 8, 82, 0.9) 65%,
-    rgba(21, 101, 192, 0.3) 85%,
-    rgba(30, 144, 255, 0.35) 100%
-  );
-  overflow: hidden;
   margin: 0;
   padding: 0;
+  overflow: hidden;
+  background-image: linear-gradient(
+      rgba(0, 0, 0, 0.0),
+      rgba(0, 0, 0, 0.0)
+    ),
+    url('/images/fondo_int.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+ 
 }
 
-.backgroundEffects {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
+/* Layout ajustado */
+.gridLayout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  z-index: 2;
+  padding: 1rem;
 }
 
+
+.leftSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  height: 100%;
+  padding: 1rem;
+}
+
+/* Sección derecha */
+.rightSection {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  height: 100%;
+}
+
+/* Sección central ajustada */
+.centerSection {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Alineado más a la izquierda */
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding-right: 2rem; /* Compensación para el ajuste */
+}
+
+/* Ajustes para pantallas más grandes */
+
+/* Logo Container */
 .logoContainer {
-  position: fixed;
-  left: 5%;
-  top: 5%;
-  z-index: 100;
-  width: 15rem;
+  width: min(90%, 18rem);
+  margin-top: 1rem;
   filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
   animation: logoGlow 4s infinite;
 }
 
-.ambientEffect {
-  position: absolute;
-  inset: 0;
-  background: 
-    radial-gradient(circle at 30% 20%, rgba(255, 20, 147, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 70% 80%, rgba(0, 191, 255, 0.15) 0%, transparent 50%),
-    linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
-  filter: blur(40px);
-}
 
-.starLayer1 {
-  position: absolute;
-  inset: 0;
-  background-image: 
-    radial-gradient(1px 1px at 10% 10%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 30% 50%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 40% 70%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 50% 90%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 60% 20%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 70% 40%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 80% 60%, rgba(255, 255, 255, 0.8), transparent),
-    radial-gradient(1px 1px at 90% 80%, rgba(255, 255, 255, 0.8), transparent);
-  opacity: 0.5;
-  animation: twinkle 8s infinite;
-}
-
-.starLayer2 {
-  position: absolute;
-  inset: 0;
-  transform: rotate(45deg);
-  background-image: 
-    radial-gradient(1.2px 1.2px at 15% 15%, rgba(255, 255, 255, 0.9), transparent),
-    radial-gradient(1.2px 1.2px at 25% 35%, rgba(255, 255, 255, 0.9), transparent),
-    radial-gradient(1.2px 1.2px at 35% 55%, rgba(255, 255, 255, 0.9), transparent),
-    radial-gradient(1.2px 1.2px at 45% 75%, rgba(255, 255, 255, 0.9), transparent),
-    radial-gradient(1.2px 1.2px at 55% 95%, rgba(255, 255, 255, 0.9), transparent);
-  opacity: 0.3;
-  animation: twinkle 10s infinite;
-}
-
-.brightStar {
-  position: absolute;
-  width: 2px;
-  height: 2px;
-  background: white;
-  border-radius: 50%;
-  box-shadow: 
-    0 0 4px 1px rgba(255, 255, 255, 0.3),
-    0 0 8px 2px rgba(255, 255, 255, 0.2);
-  animation: glow 3s infinite;
-}
-
-.mainContent {
-  flex: 1;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
-
-.deviceContainer {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(1rem, 5vh, 3rem);
-}
-
-.fullscreenButton:hover {
-  transform: scale(1.1);
-  background: rgba(0, 0, 0, 0.7);
-}
-
+/* Interactive Elements */
 .floatingItem {
   position: fixed;
   animation: floatUp linear forwards;
@@ -130,6 +88,7 @@
   pointer-events: none;
 }
 
+/* Animations */
 @keyframes logoGlow {
   0%, 100% {
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
@@ -171,94 +130,27 @@
   100% { opacity: 0; }
 }
 
-/* Media queries */
 @media (min-width: 1440px) {
-  .deviceContainer {
-    padding: clamp(2rem, 8vh, 4rem);
-  }
-}
-
-@media (min-width: 1920px) {
-  .deviceContainer {
-    padding: clamp(3rem, 10vh, 6rem);
+  .gridLayout {
+    grid-template-columns: 4.5fr 4.5fr 3fr;
+    max-width: 1920px;
+    margin: 0 auto;
   }
 }
 
 
-@media (min-width: 1920px) {
-  .deviceWrapper {
-    width: 95% !important;
-    height: 90% !important;
+
+/* Layout ajustado para pantallas grandes */
+@media (min-width: 1024px) {
+  .gridLayout {
+    grid-template-columns: 4fr 5fr 3fr;
   }
 
-  .deviceWrapper :global(.marvel-device) {
-    transform: scale(1.2) !important;
+  .leftSection {
+    padding-left: 3rem;
   }
 
-  .imageContainer {
-    aspect-ratio: 4/3 !important;
-  }
-}
-
-
-@keyframes fadeInOut {
-  0% {
-    opacity: 0;
-    transform: translateY(10px) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+  .centerSection {
+    padding: 0 2rem;
   }
 }
-
-@keyframes neonPulse {
-  from {
-    filter: brightness(100%);
-  }
-  to {
-    filter: brightness(120%);
-  }
-}
-
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-@keyframes neonPulse {
-  from {
-    filter: brightness(100%);
-  }
-  to {
-    filter: brightness(120%);
-  }
-}
-
-/* Reposicionamos el botón de fullscreen */
-.fullscreenButton {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  z-index: 100;
-  width: 4rem;
-  height: 4rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  color: white;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-
-.fullscreenButton:hover {
-  transform: scale(1.1);
-  background: rgba(0, 0, 0, 0.6);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
