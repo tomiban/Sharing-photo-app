@@ -2,7 +2,6 @@ import React from 'react';
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade } from "swiper/modules";
 import Image from "next/image";
-import { RoughNotation } from "react-rough-notation";
 import { Permanent_Marker } from 'next/font/google';
 import "swiper/css";
 import "swiper/css/effect-fade";
@@ -41,7 +40,7 @@ const PolaroidCarousel = ({
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <div className="relative w-[min(75vh,_450px)] h-[min(80vh,_750px)] min-h-[400px] bg-white shadow-2xl flex flex-col">
+      <div className="relative w-[min(80vh,_500px)] h-[min(85vh,_800px)] min-h-[450px] bg-white shadow-2xl flex flex-col">
         <div 
           className={`absolute -top-6 left-1/2 transform -translate-x-1/2 ${decoration.className}`}
           style={decoration.style}

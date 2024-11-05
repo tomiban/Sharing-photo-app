@@ -52,15 +52,14 @@
   height: 100%;
 }
 
-/* Sección central ajustada */
 .centerSection {
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Alineado más a la izquierda */
+  justify-content: center; /* Cambiado a center para mejor balance */
   position: relative;
   width: 100%;
   height: 100%;
-  padding-right: 2rem; /* Compensación para el ajuste */
+  padding: 0 1rem; /* Ajustado el padding */
 }
 
 /* Ajustes para pantallas más grandes */
@@ -142,13 +141,21 @@
     max-width: 1600px; /* Reducido de 1920px */
     margin: 0 auto;
   }
+
+  .centerSection {
+    justify-content: center;
+    padding: 0;
+  }
 }
-
-
 
 /* Layout ajustado para pantallas grandes */
 @media (min-width: 1024px) {
   .gridLayout {
     grid-template-columns: 3.5fr 4.5fr 2.5fr; /* Ajustado las proporciones */
+  }
+
+  .centerSection {
+    justify-content: flex-start;
+    padding-right: 2rem;
   }
 }
