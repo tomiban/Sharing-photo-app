@@ -103,3 +103,62 @@ textarea {
     @apply bg-background text-foreground;
   }
 }
+
+
+/* Agrega esto a tu archivo CSS global o como módulo CSS */
+.EmojiPickerReact {
+  --epr-bg-color: rgba(88, 28, 135, 0.95) !important; /* Ajustado para móvil */
+  --epr-category-label-bg-color: rgba(88, 28, 135, 0.98) !important;
+  --epr-hover-bg-color: rgba(255, 255, 255, 0.1) !important;
+  --epr-focus-bg-color: rgba(255, 255, 255, 0.1) !important;
+  --epr-search-border-color: rgba(255, 255, 255, 0.1) !important;
+  --epr-category-label-text-color: rgba(255, 255, 255, 0.8) !important;
+  --epr-emoji-size: 24px !important; /* Tamaño optimizado para móvil */
+  border: none !important;
+  border-radius: 0 !important;
+  width: 100vw !important;
+  backdrop-filter: blur(12px);
+}
+
+/* Ajustes específicos para móvil */
+.EmojiPickerReact .epr-body::-webkit-scrollbar {
+  width: 0px !important;
+}
+
+.EmojiPickerReact .epr-emoji-category-label {
+  background-color: rgba(88, 28, 135, 0.98) !important;
+  backdrop-filter: blur(12px);
+  padding: 8px !important;
+  font-size: 14px !important;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.EmojiPickerReact .epr-search {
+  padding: 8px !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.EmojiPickerReact .epr-emoji-category-content {
+  padding: 8px !important;
+}
+
+/* Animación de entrada */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.EmojiPickerReact {
+  animation: slideUp 0.2s ease-out;
+}
+
+/* Safe area para notch/dynamic island */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

@@ -7,13 +7,16 @@ import { FaTimes } from "react-icons/fa";
 import { toast } from "react-toastify";
 import Image from "next/image";
 import CameraIcon from "./CameraIcon";
-import { motion } from "framer-motion"; // Importa motion desde framer-motion
+import { motion } from "framer-motion"; 
+import { BsEmojiSmile } from "react-icons/bs"; // Importa el icono de emoji
+import EmojiPicker from "emoji-picker-react";
 
 const UploadPhoto = () => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [comment, setComment] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const handleFileChange = async (e) => {
     const selectedFile = e.target.files?.[0];
@@ -95,6 +98,11 @@ const UploadPhoto = () => {
     setUploading(false);
   };
 
+  const onEmojiClick = (emojiObject) => {
+    setComment((prevComment) => prevComment + emojiObject.emoji);
+    setShowEmojiPicker(false);
+  };
+
   return (
     <div className="h-[100dvh] flex flex-col px-4 max-w-md mx-auto">
       {/* Top section with logo - reduced margin */}
@@ -159,21 +167,67 @@ const UploadPhoto = () => {
             )}
           </button>
         </div>
-
-        <div className="flex-none h-[12%]">
+        <div className="flex-none h-[12%] relative">
+        <div className="relative w-full h-full flex items-center">
           <textarea
             value={comment}
             onChange={(e) => {
-              // Limita el texto a 189 caracteres
               if (e.target.value.length <= 180) {
                 setComment(e.target.value);
               }
             }}
-            maxLength={180} // Límite hard de caracteres
+            maxLength={180}
             placeholder="Agrega un comentario..."
-            className="w-full h-full p-3 bg-purple-800/20 backdrop-blur-md text-white placeholder-white/50 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/25 transition-all hover:bg-purple-800/30 focus:bg-purple-800/30"
+            className="w-full h-full p-3 pr-12 bg-purple-800/20 backdrop-blur-md text-white placeholder-white/50 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/25 transition-all hover:bg-purple-800/30 focus:bg-purple-800/30"
           />
+          <button
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            className="absolute right-3 bottom-3 p-2 text-white/80 hover:text-white transition-colors"
+            type="button"
+          >
+            <BsEmojiSmile className="w-5 h-5" />
+          </button>
         </div>
+
+        {/* Emoji Picker optimizado para móvil */}
+        {showEmojiPicker && (
+          <div className="fixed inset-x-0 bottom-0 z-50 pb-safe">
+            <div className="relative">
+              {/* Header del picker */}
+              <div className="flex items-center justify-between px-4 py-2 bg-purple-900/95 border-b border-white/10 backdrop-blur-md">
+                <span className="text-white/90 text-sm font-medium">Emojis</span>
+                <button
+                  onClick={() => setShowEmojiPicker(false)}
+                  className="p-2 text-white/80 hover:text-white"
+                >
+                  <FaTimes className="w-4 h-4" />
+                </button>
+              </div>
+              
+              {/* Emoji Picker */}
+              <EmojiPicker
+                onEmojiClick={onEmojiClick}
+                width="100%"
+                height={300}
+                theme="dark"
+                skinTonesDisabled
+                searchDisabled
+                lazyLoadEmojis
+                previewConfig={{
+                  showPreview: false
+                }}
+                categories={['smileys_people', 'animals_nature', 'food_drink', 'objects', 'symbols', 'flags']}
+              />
+            </div>
+            
+            {/* Overlay para cerrar al tocar fuera */}
+            <div 
+              className="fixed inset-0 bg-black/40 -z-10"
+              onClick={() => setShowEmojiPicker(false)}
+            />
+          </div>
+        )}
+      </div>
 
         {/* Share button with framer-motion effect */}
         <div className="flex-none mb-4">
