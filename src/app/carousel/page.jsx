@@ -237,7 +237,7 @@ const CarouselPage = () => {
             <Image
               src="/logo-form.png"
               alt="Real Meet 2024"
-              width={200} // Reducido de 280
+              width={240} // Reducido de 280
               height={60} // Reducido de 80
               priority
             />

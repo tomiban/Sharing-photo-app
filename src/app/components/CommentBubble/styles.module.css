@@ -33,7 +33,7 @@
     position: relative;
     text-align: center;
     color: rgba(255, 255, 255, 0.95);
-    font-size: clamp(0.875rem, 2vw, 1.25rem);
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
     font-weight: 500;
     line-height: 1.75;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -109,13 +109,13 @@
 @media (max-width: 1023px) {
     .commentBubble {
         margin: -1rem auto 1rem; /* Agregado margin-top negativo para subirlo */
-        width: min(90%, 20rem);
+        width: min(90%, 22rem);
     }
 }
 
 @media (min-width: 1024px) {
     .commentBubble {
         margin: -1rem 0 2rem; /* Agregado margin-top negativo para subirlo en desktop */
-        width: 20rem;
+        width: 22rem;
     }
 }
