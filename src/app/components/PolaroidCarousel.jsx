@@ -34,14 +34,14 @@ const DECORATIONS = {
 const PolaroidCarousel = ({ 
   photos, 
   onSlideChange,
-  decorationType = 'TAPE_LIGHT'
+  decorationType = 'TAPE_LIGHT',
+  slideInterval = 5000 // Añadido para permitir configurar el intervalo desde fuera
 }) => {
   const decoration = DECORATIONS[decorationType];
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <div className="relative w-[min(85vh,_550px)] h-[min(90vh,_850px)] min-h-[500px] bg-white shadow-2xl flex flex-col">
-        {/* Decoración superior configurable */}
+      <div className="relative w-[min(75vh,_450px)] h-[min(80vh,_750px)] min-h-[400px] bg-white shadow-2xl flex flex-col">
         <div 
           className={`absolute -top-6 left-1/2 transform -translate-x-1/2 ${decoration.className}`}
           style={decoration.style}
@@ -53,17 +53,23 @@ const PolaroidCarousel = ({
             <Swiper
               effect="fade"
               autoplay={{
-                delay: 5000,
+                delay: slideInterval,
                 disableOnInteraction: false,
               }}
               modules={[Autoplay, EffectFade]}
               onSlideChange={onSlideChange}
               className="w-full h-full"
+              loop={true} // Habilitamos el loop infinito
+              allowTouchMove={false} // Deshabilitamos el arrastre manual para mantener la automatización
+              speed={1000} // Ajustamos la velocidad de transición
+              fadeEffect={{ 
+                crossFade: true // Mejora el efecto de transición fade
+              }}
             >
               {photos.map((photo) => (
                 <SwiperSlide key={photo.id} className="w-full h-full">
                   <div className="relative w-full h-full bg-black">
-                    <div className="absolute inset-0 scale-[0.] transform-gpu">
+                    <div className="absolute inset-0">
                       <Image
                         src={photo.url || photo.image_url}
                         alt={photo.comment || 'Selfie del evento'}

@@ -237,8 +237,8 @@ const CarouselPage = () => {
             <Image
               src="/logo-form.png"
               alt="Real Meet 2024"
-              width={280}
-              height={80}
+              width={200} // Reducido de 280
+              height={60} // Reducido de 80
               priority
             />
           </div>
@@ -258,17 +258,17 @@ const CarouselPage = () => {
 
         {/* Right Section */}
         <div className={styles.rightSection}>
-          <div className="mt-20">
+          <div className="mt-16 w-full flex justify-center">
             <QRCode
               url={process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}
             />
           </div>
-          <div className="mb-8">
+          <div className="mb-12 w-full flex justify-center">
             <Image
               src="/logo-blanco.png"
               alt="Logo empresa"
-              width={210}
-              height={120}
+              width={180} // Reducido de 210
+              height={100} // Reducido de 120
               className="object-contain opacity-90 hover:opacity-100 transition-opacity"
               priority
             />

@@ -26,11 +26,11 @@ const QRCode = ({ url }) => (
         `,
         transition: 'all 0.3s ease'
       }}
-      className="hover:brightness-110 hover:scale-105"
+      className="hover:brightness-110 hover:scale-105 flex flex-col justify-center items-center"
     >
       <QRCodeSVG
         value={url}
-        size={220}
+        size={180}
         bgColor="white"
         fgColor="#000000"
         level="L"
