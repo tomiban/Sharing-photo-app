@@ -251,6 +251,7 @@ const CarouselPage = () => {
               photos={photos}
               onSlideChange={handleSlideChange}
               decorationType="TAPE_LIGHT" 
+              slideInterval={settings.slide_interval}
             />
           </div>
         </div>

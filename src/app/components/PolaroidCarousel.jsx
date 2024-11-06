@@ -38,6 +38,11 @@ const PolaroidCarousel = ({
 }) => {
   const decoration = DECORATIONS[decorationType];
 
+  console.log('PolaroidCarousel props:', {
+    slideInterval,
+    cantidadFotos: photos.length
+  });
+
   return (
     <div className="relative w-full h-full flex items-center justify-center">
       <div className="relative w-[min(80vh,_500px)] h-[min(85vh,_800px)] min-h-[450px] bg-white shadow-2xl flex flex-col">
