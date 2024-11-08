@@ -6,10 +6,13 @@ import { supabase } from "../../utils/supabaseClient";
 import { toast } from "react-toastify";
 import CarouselSettings from "@/app/components/CarouselSettings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import { FaExpand } from 'react-icons/fa';
+
 
 const AdminPanel = () => {
   const [uploads, setUploads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortOrder, setSortOrder] = useState('newest');
   const router = useRouter();
 
   useEffect(() => {
@@ -101,23 +104,23 @@ const AdminPanel = () => {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100 flex flex-col items-center justify-start p-2 sm:p-4 md:p-8">
-      <div className="w-full max-w-5xl mx-auto">
+    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100 flex flex-col p-2 sm:p-4">
+      <div className="w-full max-w-lg mx-auto md:max-w-4xl">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-4 sm:mb-8 bg-gray-800/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-gray-700/50 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3 bg-gray-800/50 p-3 rounded-lg backdrop-blur-sm border border-gray-700/50 shadow-lg">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            <h1 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
               Panel de Administración
             </h1>
-            <p className="text-gray-400 mt-1 text-sm sm:text-base">
-              Gestión de fotos y configuración del carrusel
+            <p className="text-gray-400 text-sm">
+              Gestión de fotos y configuración
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="w-full sm:w-auto bg-red-600/90 hover:bg-red-700 text-white py-2.5 px-5 rounded-lg transition-all 
+            className="w-full sm:w-auto bg-red-600/90 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition-all 
             duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-red-600/25 active:scale-95
-            border border-red-500/20 backdrop-blur-sm text-sm sm:text-base"
+            border border-red-500/20 backdrop-blur-sm text-sm"
           >
             <FaSignOutAlt />
             <span>Cerrar Sesión</span>
@@ -125,83 +128,87 @@ const AdminPanel = () => {
         </div>
 
         {/* Tabs Container */}
-        <div className="bg-gray-800/50 rounded-xl border border-gray-700/50 shadow-lg backdrop-blur-sm overflow-hidden">
+        <div className="bg-gray-800/50 rounded-lg border border-gray-700/50 shadow-lg backdrop-blur-sm overflow-hidden">
           <Tabs defaultValue="photos" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 p-0 h-14 sm:h-12 bg-gray-900/50">
+            <TabsList className="grid w-full grid-cols-2 p-0 h-12 bg-gray-900/50">
               <TabsTrigger 
                 value="photos" 
                 className="w-full h-full flex items-center justify-center gap-2
                   data-[state=active]:bg-purple-600 data-[state=active]:text-white 
                   data-[state=inactive]:text-gray-400 data-[state=inactive]:hover:bg-gray-800/50
-                  transition-all duration-200 rounded-none border-0 text-sm sm:text-base"
+                  transition-all duration-200 rounded-none border-0 text-sm"
               >
                 <FaImages className="text-lg" />
-                <span className="font-medium">Fotos Pendientes</span>
+                <span className="font-medium">Pendientes</span>
+                {uploads.length > 0 && (
+                  <span className="ml-1 bg-red-500 text-white px-2 py-0.5 rounded-full text-xs">
+                    {uploads.length}
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger 
                 value="settings" 
                 className="w-full h-full flex items-center justify-center gap-2
                   data-[state=active]:bg-purple-600 data-[state=active]:text-white 
                   data-[state=inactive]:text-gray-400 data-[state=inactive]:hover:bg-gray-800/50
-                  transition-all duration-200 rounded-none border-0 text-sm sm:text-base"
+                  transition-all duration-200 rounded-none border-0 text-sm"
               >
                 <FaCog className="text-lg" />
                 <span className="font-medium">Configuración</span>
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="photos" className="mt-0 p-2 sm:p-4">
+            <TabsContent value="photos" className="mt-0 p-2">
               {loading ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mb-4" />
-                  <p className="text-gray-400 text-sm sm:text-base">Cargando fotos pendientes...</p>
+                <div className="flex flex-col items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-purple-500 mb-3" />
+                  <p className="text-gray-400 text-sm">Cargando fotos...</p>
                 </div>
               ) : uploads.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-                  <FaImages className="text-4xl sm:text-5xl mb-4 opacity-50" />
-                  <p className="text-base sm:text-lg">No hay fotos pendientes de aprobación</p>
+                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                  <FaImages className="text-3xl mb-3 opacity-50" />
+                  <p className="text-sm">No hay fotos pendientes</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <div className="space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
                   {uploads.map((upload) => (
                     <div
                       key={upload.id}
-                      className="group bg-gray-700/50 rounded-xl overflow-hidden border border-gray-600/50 
-                      shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:bg-gray-700"
+                      className="bg-gray-700/50 rounded-lg overflow-hidden border border-gray-600/50 
+                      shadow-lg transition-all duration-300 hover:md:shadow-xl hover:md:scale-[1.02]"
                     >
-                      <div className="relative h-48 sm:h-56 overflow-hidden">
+                      <div className="relative aspect-[4/3] overflow-hidden">
                         <img
                           src={upload.image_url}
                           alt="Foto pendiente"
-                          className="w-full h-full object-cover transition-transform duration-300 
-                          group-hover:scale-105"
+                          className="w-full h-full object-cover"
+                          onClick={() => window.open(upload.image_url, '_blank')}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-0 
-                          group-hover:opacity-60 transition-opacity duration-300" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-40" />
                       </div>
-                      <div className="p-4 sm:p-5">
-                        <p className="mb-4 sm:mb-5 text-gray-300 text-sm sm:text-base">
+                      <div className="p-3 space-y-3">
+                        <p className="text-sm text-gray-300 line-clamp-2">
                           {upload.comment || (
                             <span className="text-gray-500 italic">Sin comentario</span>
                           )}
                         </p>
-                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                        <div className="grid grid-cols-2 gap-2">
                           <button
                             onClick={() => approveUpload(upload.id)}
-                            className="flex-1 bg-green-600/90 hover:bg-green-700 text-white py-2.5 px-4 
-                            rounded-lg transition-all duration-200 flex items-center justify-center gap-2
-                            shadow-lg hover:shadow-green-600/25 active:scale-95 border border-green-500/20
-                            text-sm sm:text-base"
+                            className="bg-green-600/90 active:bg-green-700 text-white py-2 px-3 
+                            rounded-lg transition-colors duration-200 flex items-center justify-center gap-2
+                            shadow-lg active:scale-95 border border-green-500/20
+                            text-sm hover:md:bg-green-700"
                           >
                             <FaCheck />
                             <span>Aprobar</span>
                           </button>
                           <button
                             onClick={() => deleteUpload(upload.id, upload.image_url)}
-                            className="flex-1 bg-red-600/90 hover:bg-red-700 text-white py-2.5 px-4 
-                            rounded-lg transition-all duration-200 flex items-center justify-center gap-2
-                            shadow-lg hover:shadow-red-600/25 active:scale-95 border border-red-500/20
-                            text-sm sm:text-base"
+                            className="bg-red-600/90 active:bg-red-700 text-white py-2 px-3 
+                            rounded-lg transition-colors duration-200 flex items-center justify-center gap-2
+                            shadow-lg active:scale-95 border border-red-500/20
+                            text-sm hover:md:bg-red-700"
                           >
                             <FaTrash />
                             <span>Eliminar</span>
@@ -214,7 +221,7 @@ const AdminPanel = () => {
               )}
             </TabsContent>
 
-            <TabsContent value="settings" className="p-2 sm:p-4">
+            <TabsContent value="settings" className="p-2">
               <CarouselSettings />
             </TabsContent>
           </Tabs>
