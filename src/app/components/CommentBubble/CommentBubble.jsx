@@ -1,3 +1,4 @@
+// CommentBubble.jsx
 import { useEffect, useState } from 'react';
 import styles from './styles.module.css';
 
@@ -20,7 +21,7 @@ const CommentBubble = ({ comment }) => {
     const glowInterval = setInterval(() => {
       setIsGlowing(true);
       setTimeout(() => setIsGlowing(false), 1000);
-    }, Math.random() * 5000 + 3000); // Entre 3 y 8 segundos
+    }, Math.random() * 5000 + 3000);
 
     return () => clearInterval(glowInterval);
   }, []);
@@ -39,8 +40,10 @@ const CommentBubble = ({ comment }) => {
         <p className={`
           ${styles.commentText} 
           ${isTransitioning ? styles.fadeOut : styles.fadeIn}
+          text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl 2xl:text-4xl
+          font-semibold text-center
         `}>
-        {displayedComment || '❤️ ❤️ ❤️'}
+          {displayedComment || '❤️ ❤️ ❤️'}
         </p>
 
         <div className={styles.decorationTop} />

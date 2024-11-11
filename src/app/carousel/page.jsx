@@ -130,10 +130,17 @@ const CarouselPage = () => {
       fetchPhotos();
       const pollInterval = setInterval(fetchPhotos, 60000);
 
-      const effectInterval = setInterval(() => {
+      // Separar los intervalos para cada efecto
+      const emojiInterval = setInterval(() => {
         if (Math.random() < 0.8) createFloatingItem();
-        if (Math.random() < 0.2) triggerFlash();
       }, settings.emoji_interval || DEFAULT_SETTINGS.emoji_interval);
+
+      // Intervalo específico para el flash
+      const flashInterval = setInterval(() => {
+        if (settings.flash_enabled) {
+          triggerFlash();
+        }
+      }, settings.flash_interval || DEFAULT_SETTINGS.flash_interval);
 
       const confettiInterval = setInterval(() => {
         if (settings.confetti_enabled) {
@@ -144,7 +151,8 @@ const CarouselPage = () => {
 
       return () => {
         clearInterval(pollInterval);
-        clearInterval(effectInterval);
+        clearInterval(emojiInterval);
+        clearInterval(flashInterval);
         clearInterval(confettiInterval);
       };
     }
@@ -236,38 +244,40 @@ const CarouselPage = () => {
             <Image
               src="/images/logo.png"
               alt="Real Meet 2024"
-              width={240} // Reducido de 280
-              height={60} // Reducido de 80
+              width={360} // Reducido de 280
+              height={80} // Reducido de 80
+              className="w-[180px] sm:w-[200px] md:w-[220px] lg:w-[240px] xl:w-[240px] 2xl:w-[320px]
+              h-auto object-contain transition-transform duration-300
+              hover:scale-105"
               priority
             />
           </div>
           <CommentBubble comment={currentComment} />
         </div>
 
-
         <div className={styles.centerSection}>
           <div className={styles.deviceWrapper}>
             <PolaroidCarousel
               photos={photos}
               onSlideChange={handleSlideChange}
-              decorationType="TAPE_LIGHT" 
+              decorationType="TAPE_LIGHT"
               slideInterval={settings.slide_interval}
             />
           </div>
         </div>
-
         <div className={styles.rightSection}>
-          <div className="mt-16 w-full flex justify-center">
+          <div className="mt-4 lg:mt-8 xl:mt-16 w-full flex justify-center">
             <QRCode
               url={process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}
+              size={window.innerWidth <= 1366 ? 200 : 280} // Tamaño condicional
             />
           </div>
-          <div className="mb-12 w-full flex justify-center">
+          <div className="w-full flex justify-center">
             <Image
               src="/images/logo-blanco.png"
               alt="Logo empresa"
-              width={180} 
-              height={100} 
+              width={window.innerWidth <= 1366 ? 180 : 260}
+              height={window.innerWidth <= 1366 ? 100 : 150}
               className="object-contain opacity-90 hover:opacity-100 transition-opacity"
               priority
             />

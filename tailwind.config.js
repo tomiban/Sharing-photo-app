@@ -43,6 +43,11 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        screens: {
+          '3xl': '2560px',
+          '4xl': '3840px',
+          '5xl': '5120px',
+        },
       },
     },
   },

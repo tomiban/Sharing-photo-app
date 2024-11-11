@@ -1,8 +1,7 @@
 .commentBubble {
     position: relative;
-    width: 18rem; /* Reducido de 22rem */
-    max-width: 85vw; /* Reducido de 90vw */
-    margin: 0.5rem 0; /* Reducido de 1rem */
+    width: clamp(16rem, 20vw, 32rem);
+    margin: clamp(0.5rem, 1vh, 2rem) 0;
     z-index: 50;
 }
 
@@ -12,8 +11,8 @@
 
 .bubbleContent {
     position: relative;
-    padding: 1rem;
-    border-radius: 1.5rem;
+    padding: clamp(0.75rem, 1.5vw, 2rem);
+    border-radius: clamp(1rem, 2vw, 2rem);
     border: 1px solid rgba(255, 255, 255, 0.15);
     overflow: hidden;
     transition: all 0.4s ease;
@@ -24,8 +23,8 @@
     );
     backdrop-filter: blur(12px);
     box-shadow: 
-        0 4px 24px -1px rgba(0, 0, 0, 0.2),
-        0 0 16px -2px rgba(0, 0, 0, 0.1),
+        0 clamp(2px, 0.5vw, 8px) clamp(12px, 2vw, 24px) rgba(0, 0, 0, 0.2),
+        0 0 clamp(8px, 1vw, 16px) rgba(0, 0, 0, 0.1),
         inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
@@ -33,14 +32,35 @@
     position: relative;
     text-align: center;
     color: rgba(255, 255, 255, 0.95);
-    font-size: clamp(1rem, 2.5vw, 1.5rem);
+    font-size: clamp(1rem, 2vw, 2.2rem);
     font-weight: 500;
     line-height: 1.75;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 clamp(1px, 0.2vw, 4px) clamp(2px, 0.4vw, 8px) rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease-in-out;
 }
 
-/* Animaciones */
+/* Solo mantenemos breakpoints básicos para ajustes específicos */
+@media (max-width: 1023px) {
+    .commentBubble {
+        margin: -1rem auto 1rem;
+        width: clamp(16rem, 85vw, 22rem);
+    }
+}
+
+@media (min-width: 1024px) {
+    .commentBubble {
+        margin: -1rem 0 2rem;
+        width: clamp(18rem, 20vw, 28rem);
+    }
+}
+
+@media (min-width: 1920px) {
+    .commentBubble {
+        width: clamp(22rem, 25vw, 32rem);
+    }
+}
+
+/* Mantenemos todas las animaciones originales */
 @keyframes float {
     0%, 100% {
         transform: translateY(0);
@@ -103,19 +123,5 @@
     to {
         opacity: 0;
         transform: translateY(-10px);
-    }
-}
-
-@media (max-width: 1023px) {
-    .commentBubble {
-        margin: -1rem auto 1rem; /* Agregado margin-top negativo para subirlo */
-        width: min(90%, 22rem);
-    }
-}
-
-@media (min-width: 1024px) {
-    .commentBubble {
-        margin: -1rem 0 2rem; /* Agregado margin-top negativo para subirlo en desktop */
-        width: 22rem;
     }
 }

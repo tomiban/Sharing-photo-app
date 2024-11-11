@@ -129,8 +129,6 @@ src/
 
 ## 🔄 Estado y Datos
 
-## 🔄 Estado y Datos
-
 ### Supabase
 - Tablas:
   - `uploads` - Almacena metadatos y URLs de las fotos
@@ -196,6 +194,9 @@ npm run dev
 2. Iniciar sesión
 3. Gestionar fotos pendientes
 4. Configurar carrusel
+
+### Visualización de Fotos
+1. Acceder a /carousel para ver todas las fotos aprobadas en modo presentación
 
 ## 👥 Contribuidores
 <table>

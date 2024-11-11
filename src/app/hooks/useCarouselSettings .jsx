@@ -1,5 +1,4 @@
 // Este archivo debe estar en: src/app/hooks/useCarouselSettings.js
-
 import { useState, useEffect } from 'react';
 import { supabase } from '../utils/supabaseClient';
 import { toast } from 'react-toastify';
