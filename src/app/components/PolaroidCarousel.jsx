@@ -89,7 +89,7 @@ const PolaroidCarousel = ({
           className="h-[7%] min-h-[clamp(50px,6vh,100px)] 
   bg-white px-[clamp(1rem,1.5vw,2.5rem)] flex items-center justify-center"
         >
-          <div className="transform rotate-[-2deg] relative -mt-6">
+          <div className="transform rotate-[-2deg] relative -mt-6 2xl:-mt-12">
             <div className="relative inline-block">
               <span
                 className={`${caveat.className} text-[clamp(1.25rem,2vw,3.5rem)] text-gray-700 whitespace-nowrap`}
