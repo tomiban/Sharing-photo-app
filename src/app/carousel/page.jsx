@@ -240,18 +240,26 @@ const CarouselPage = () => {
       {/* Main Grid Layout */}
       <div className={styles.gridLayout}>
         <div className={styles.leftSection}>
-          <div className={styles.logoContainer}>
-            <Image
-              src="/images/logo.png"
-              alt="Real Meet 2024"
-              width={360} // Reducido de 280
-              height={80} // Reducido de 80
-              className="w-[180px] sm:w-[200px] md:w-[220px] lg:w-[240px] xl:w-[240px] 2xl:w-[320px]
-              h-auto object-contain transition-transform duration-300
-              hover:scale-105"
-              priority
-            />
-          </div>
+        <div className={styles.logoContainer}>
+  <Image
+    src="/images/logo.png"
+    alt="Real Meet 2024"
+    width={360}
+    height={80}
+    className="
+      w-[clamp(180px,15vw,220px)]
+      sm:w-[clamp(200px,18vw,240px)]
+      md:w-[clamp(220px,20vw,260px)]
+      lg:w-[clamp(240px,22vw,280px)]
+      xl:w-[clamp(260px,25vw,380px)]
+      2xl:w-[clamp(280px,30vw,380px)]
+      h-auto object-contain 
+      transition-transform duration-300
+      hover:scale-105
+    "
+    priority
+  />
+</div>
           <CommentBubble comment={currentComment} />
         </div>
 

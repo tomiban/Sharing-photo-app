@@ -49,14 +49,15 @@
 
 @media (min-width: 1024px) {
     .commentBubble {
-        margin: -1rem 0 2rem;
-        width: clamp(18rem, 20vw, 28rem);
+        margin: -2rem 0 2rem;
+        width: clamp(22rem, 23vw, 28rem);
     }
 }
 
 @media (min-width: 1920px) {
     .commentBubble {
-        width: clamp(22rem, 25vw, 32rem);
+        width: clamp(24rem, 27vw, 33rem);
+        margin: -2rem 0 2rem;
     }
 }
 
