@@ -1,13 +1,10 @@
-import { QRCodeSVG } from 'qrcode.react';
+import Image from 'next/image';
 
-const QRCode = ({ url }) => {
-  // Calculamos el tamaño base del QR relativo al viewport
-  const baseSize = Math.min(Math.max(window.innerWidth * 0.15, 180), 280);
-  
+const QRCode = ({size}) => {
   return (
     <div className="p-[clamp(0.5rem,1.5vw,2rem)] rounded-2xl">
       <h3 
-        className="text-white font-bold mb-[clamp(0.5rem,2vw,2rem)] text-center animate-pulse
+        className="text-white font-bold mb-[clamp(0.5rem,2vw,1rem)] text-center animate-pulse
                    text-[clamp(1rem,2vw,2rem)]"
         style={{
           textShadow: `
@@ -31,15 +28,16 @@ const QRCode = ({ url }) => {
           `,
           transition: 'all 0.3s ease'
         }}
-        className="hover:brightness-110 hover:scale-105 flex flex-col justify-center items-center"
+        className="hover:brightness-110 hover:scale-105 flex flex-col justify-center items-center
+                   bg-white rounded-lg relative w-[clamp(180px,15vw,280px)] h-[clamp(180px,15vw,280px)]"
       >
-        <QRCodeSVG
-          value={url}
-          size={baseSize}
-          className="rounded-lg w-[clamp(180px,15vw,280px)] h-[clamp(180px,15vw,280px)]"
-          bgColor="white"
-          fgColor="#000000"
-          level="L"
+        <Image 
+          src={"/images/qr.png"}
+          alt="QR Code para selfie"
+          fill
+          priority
+          className="object-contain p-[0.2rem]"
+          sizes="(max-width: 768px) 180px, 280px"
         />
       </div>
     </div>

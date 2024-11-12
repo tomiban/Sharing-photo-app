@@ -276,7 +276,6 @@ const CarouselPage = () => {
         <div className={styles.rightSection}>
           <div className="mt-4 lg:mt-8 xl:mt-16 w-full flex justify-center">
             <QRCode
-              url={process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}
               size={window.innerWidth <= 1366 ? 200 : 280} // Tamaño condicional
             />
           </div>
