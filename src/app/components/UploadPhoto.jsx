@@ -23,27 +23,46 @@ const UploadPhoto = () => {
 
     if (selectedFile && selectedFile.type.startsWith("image/")) {
       try {
+        // 1. Mostrar preview inmediata antes de comprimir
+        const quickPreview = URL.createObjectURL(selectedFile);
+        setPreview(quickPreview);
+
+        // 2. Configuración optimizada
         const options = {
-          maxSizeMB: 3,
-          maxWidthOrHeight: 1080,
-          useWebWorker: true,
+          maxSizeMB: 1,
+          maxWidthOrHeight: 1200,
+          useWebWorker: false,
+          initialQuality: 0.85,
+          fileType: "image/jpeg",
+          alwaysKeepResolution: false
         };
 
+        // 3. Comprimir en segundo plano
         const compressedFile = await imageCompression(selectedFile, options);
+        
+        // 4. Limpiar preview anterior y actualizar con versión comprimida
+        URL.revokeObjectURL(quickPreview);
+        const finalPreview = URL.createObjectURL(compressedFile);
+        
         setFile(compressedFile);
-        setPreview(URL.createObjectURL(compressedFile));
+        setPreview(finalPreview);
+
       } catch (error) {
-        console.error("Error al comprimir la imagen:", error);
-        toast.error("Hubo un problema al comprimir la imagen.");
+        console.error("Error al procesar la imagen:", error);
+        toast.error("Hubo un problema al procesar la imagen.");
+        handleRemovePhoto();
       }
     } else {
       toast.error("Por favor, selecciona un archivo de imagen válido.");
-      setFile(null);
-      setPreview(null);
+      handleRemovePhoto();
     }
   };
 
+  // Función de limpieza mejorada
   const handleRemovePhoto = () => {
+    if (preview) {
+      URL.revokeObjectURL(preview);
+    }
     setFile(null);
     setPreview(null);
     const input = document.getElementById("photo-input");
@@ -58,44 +77,53 @@ const UploadPhoto = () => {
 
     setUploading(true);
 
-    const fileName = `${Date.now()}_${file.name}`;
+    try {
+      // 1. Generar nombre de archivo más limpio
+      const timestamp = Date.now();
+      const fileName = `photo_${timestamp}.jpg`;
 
-    const { data, error } = await supabase.storage
-      .from("photos")
-      .upload(fileName, file);
+      // 2. Subir imagen con opciones optimizadas
+      const { data, error: uploadError } = await supabase.storage
+        .from("photos")
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          contentType: 'image/jpeg',
+          upsert: false // Evita sobreescrituras accidentales
+        });
 
-    if (error) {
-      console.error("Error al subir la foto:", error);
-      toast.error(
-        "Hubo un problema al compartir la foto. Por favor, inténtalo de nuevo."
-      );
-      setUploading(false);
-      return;
-    }
+      if (uploadError) throw uploadError;
 
-    const { data: publicUrlData } = supabase.storage
-      .from("photos")
-      .getPublicUrl(data.path);
+      // 3. Obtener URL e insertar en base de datos en una sola operación
+      const { data: { publicUrl } } = supabase.storage
+        .from("photos")
+        .getPublicUrl(fileName);
 
-    const imageUrl = publicUrlData.publicUrl;
+      const { error: insertError } = await supabase
+        .from("uploads")
+        .insert([{ 
+          image_url: publicUrl, 
+          comment: comment.trim(),
+          approved: false,
+          created_at: new Date().toISOString()
+        }]);
 
-    const { error: insertError } = await supabase
-      .from("uploads")
-      .insert([{ image_url: imageUrl, comment: comment }]);
+      if (insertError) throw insertError;
 
-    if (insertError) {
-      console.error("Error al insertar en la base de datos:", insertError);
-      toast.error(
-        "Hubo un problema al compartir la foto. Por favor, inténtalo de nuevo."
-      );
-    } else {
+      // 4. Éxito - limpiar estado
       toast.success("¡Foto compartida exitosamente! Pendiente de aprobación.");
-      setFile(null);
-      setPreview(null);
+      handleRemovePhoto();
       setComment("");
-    }
 
-    setUploading(false);
+    } catch (error) {
+      console.error("Error al subir:", error);
+      toast.error(
+        error.message === 'Duplicate'
+          ? "Esta foto ya fue compartida."
+          : "No se pudo compartir la foto. Intenta nuevamente."
+      );
+    } finally {
+      setUploading(false);
+    }
   };
 
   const onEmojiClick = (emojiObject) => {
