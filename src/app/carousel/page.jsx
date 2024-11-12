@@ -128,7 +128,7 @@ const CarouselPage = () => {
   useEffect(() => {
     if (settings) {
       fetchPhotos();
-      const pollInterval = setInterval(fetchPhotos, 60000);
+      const pollInterval = setInterval(fetchPhotos, 30000);
 
       // Separar los intervalos para cada efecto
       const emojiInterval = setInterval(() => {
