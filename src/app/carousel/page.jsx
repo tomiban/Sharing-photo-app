@@ -36,13 +36,38 @@ const CarouselPage = () => {
   const [currentComment, setCurrentComment] = useState("");
 
   const fetchSettings = async () => {
-    const { data, error } = await supabase
-      .from("carousel_settings")
-      .select("*")
-      .single();
-
-    if (!error && data) {
-      setSettings(data);
+    try {
+      // Primer intento
+      let { data, error } = await supabase
+        .from('carousel_settings')
+        .select('*')
+        .single();
+  
+      // Si hay error 406, reintentamos con una configuración diferente
+      if (error?.status === 406) {
+        console.warn('Retrying settings fetch with different approach');
+        ({ data, error } = await supabase
+          .from('carousel_settings')
+          .select('*')
+          .limit(1)
+          .maybeSingle());
+      }
+  
+      if (error) {
+        console.error('Error fetching settings:', error);
+        setSettings(DEFAULT_SETTINGS);
+        return;
+      }
+  
+      if (data) {
+        setSettings({
+          ...DEFAULT_SETTINGS,
+          ...data
+        });
+      }
+    } catch (error) {
+      console.error('Error in fetchSettings:', error);
+      setSettings(DEFAULT_SETTINGS);
     }
   };
 

@@ -52,6 +52,7 @@ const PolaroidCarousel = ({
               autoplay={{
                 delay: slideInterval,
                 disableOnInteraction: false,
+                pauseOnMouseEnter: false,
               }}
               modules={[Autoplay, EffectFade]}
               onSlideChange={onSlideChange}
@@ -62,6 +63,13 @@ const PolaroidCarousel = ({
               fadeEffect={{
                 crossFade: true,
               }}
+              // Configuraciones adicionales para asegurar el loop
+              watchSlidesProgress={true}
+              loopAdditionalSlides={2}
+              updateOnWindowResize={true}
+              observer={true}
+              observeParents={true}
+              lazyPreloadPrevNext={2}
             >
               {photos.map((photo) => (
                 <SwiperSlide key={photo.id} className="w-full h-full">
@@ -74,8 +82,8 @@ const PolaroidCarousel = ({
                         priority
                         className="object-cover"
                         sizes="(max-width: 76px) 90vw, 
-                               (max-width: 1280px) 45vw,
-                               55vw"
+                       (max-width: 1280px) 45vw,
+                       55vw"
                       />
                     </div>
                   </div>
