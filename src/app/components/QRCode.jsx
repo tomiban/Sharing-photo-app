@@ -18,7 +18,7 @@ const QRCode = ({size}) => {
           animation: 'shine 3s linear infinite'
         }}
       >
-        ¡Dejanos tu Selfi!
+        ¡Dejanos tu Selfie!
       </h3>
       <div 
         style={{
