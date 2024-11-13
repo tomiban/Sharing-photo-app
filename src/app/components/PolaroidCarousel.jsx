@@ -1,4 +1,5 @@
-import React from "react";
+// PolaroidCarousel.js
+import React, { useRef, useImperativeHandle, forwardRef } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, EffectFade } from "swiper/modules";
 import Image from "next/image";
@@ -19,13 +20,17 @@ const DECORATIONS = {
   },
 };
 
-const PolaroidCarousel = ({
+const PolaroidCarousel = forwardRef(({
   photos,
   onSlideChange,
   decorationType = "TAPE_LIGHT",
   slideInterval = 5000,
-}) => {
-  const decoration = DECORATIONS[decorationType];
+}, ref) => {
+  const swiperRef = useRef(null);
+  
+  useImperativeHandle(ref, () => ({
+    swiper: swiperRef.current?.swiper
+  }));
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
@@ -37,17 +42,16 @@ const PolaroidCarousel = ({
         transition-all duration-300 ease-in-out
         transform-gpu"
       >
-        {/* Cinta decorativa más grande */}
         <div
           className={`absolute -top-[clamp(1rem,1.5vw,2rem)] left-1/2 transform -translate-x-1/2 
-            transition-transform duration-300 ${decoration.className}`}
-          style={decoration.style}
+            transition-transform duration-300 ${DECORATIONS[decorationType].className}`}
+          style={DECORATIONS[decorationType].style}
         />
 
-        {/* Área de la imagen con padding proporcionalmente más grande */}
         <div className="relative flex-1 p-[clamp(0.75rem,1.5vw,2rem)]">
           <div className="relative w-full h-full bg-black overflow-hidden">
             <Swiper
+              ref={swiperRef}
               effect="fade"
               autoplay={{
                 delay: slideInterval,
@@ -63,13 +67,13 @@ const PolaroidCarousel = ({
               fadeEffect={{
                 crossFade: true,
               }}
-              // Configuraciones adicionales para asegurar el loop
               watchSlidesProgress={true}
               loopAdditionalSlides={2}
               updateOnWindowResize={true}
               observer={true}
               observeParents={true}
               lazyPreloadPrevNext={2}
+              key={photos.length} // Esto ayuda a mantener el estado del autoplay
             >
               {photos.map((photo) => (
                 <SwiperSlide key={photo.id} className="w-full h-full">
@@ -95,7 +99,7 @@ const PolaroidCarousel = ({
 
         <div
           className="h-[7%] min-h-[clamp(50px,6vh,100px)] 
-  bg-white px-[clamp(1rem,1.5vw,2.5rem)] flex items-center justify-center"
+          bg-white px-[clamp(1rem,1.5vw,2.5rem)] flex items-center justify-center"
         >
           <div className="transform rotate-[-2deg] relative -mt-6 2xl:-mt-12">
             <div className="relative inline-block">
@@ -104,7 +108,6 @@ const PolaroidCarousel = ({
               >
                 Real Meet 2024
               </span>
-              {/* Sistema de subrayado como lo tenías originalmente */}
               <div className="absolute bottom-0 left-0 w-full">
                 <div
                   className="absolute bottom-0 left-0 w-full h-[1px] bg-black opacity-40"
@@ -127,7 +130,6 @@ const PolaroidCarousel = ({
           </div>
         </div>
 
-        {/* Bordes y sombras más pronunciados */}
         <div
           className="absolute inset-0 border-white pointer-events-none
           border-[clamp(8px,1vw,20px)]
@@ -141,6 +143,8 @@ const PolaroidCarousel = ({
       </div>
     </div>
   );
-};
+});
+
+PolaroidCarousel.displayName = 'PolaroidCarousel';
 
 export default PolaroidCarousel;

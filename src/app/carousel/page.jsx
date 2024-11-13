@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useWindowSize } from "@react-hook/window-size";
 import { FaExpand, FaCompress } from "react-icons/fa";
 import Confetti from "react-confetti";
@@ -12,8 +12,8 @@ import QRCode from "@/app/components/QRCode";
 import styles from "./styles.module.css";
 
 const DEFAULT_SETTINGS = {
-  slide_interval: 5000,
-  photos_limit: "all",
+  slide_interval: 6000,
+  photos_limit: 10,
   flash_enabled: true,
   flash_interval: 10000,
   emojis_enabled: true,
@@ -32,46 +32,36 @@ const CarouselPage = () => {
   const [floatingItems, setFloatingItems] = useState([]);
   const [confettiActive, setConfettiActive] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedDevice, setSelectedDevice] = useState("iPadMini");
   const [currentComment, setCurrentComment] = useState("");
+  const carouselRef = useRef(null);
+  const lastFetchRef = useRef(Date.now());
+  const UUID = "32b59104-d22c-4e8d-9c83-31ac75a81dba";
 
   const fetchSettings = async () => {
     try {
-      // Primer intento
-      let { data, error } = await supabase
-        .from('carousel_settings')
-        .select('*')
-        .single();
-  
-      // Si hay error 406, reintentamos con una configuración diferente
-      if (error?.status === 406) {
-        console.warn('Retrying settings fetch with different approach');
-        ({ data, error } = await supabase
-          .from('carousel_settings')
-          .select('*')
-          .limit(1)
-          .maybeSingle());
-      }
-  
-      if (error) {
-        console.error('Error fetching settings:', error);
+      const { data, error } = await supabase
+        .from("carousel_settings")
+        .select()
+        .eq('id', UUID)
+        .maybeSingle();
+      
+      if (error || !data) {
+        console.error("Error porque no tengo data:", error);
         setSettings(DEFAULT_SETTINGS);
-        return;
-      }
-  
-      if (data) {
-        setSettings({
-          ...DEFAULT_SETTINGS,
-          ...data
-        });
+      } else {
+        setSettings(data);
       }
     } catch (error) {
-      console.error('Error in fetchSettings:', error);
       setSettings(DEFAULT_SETTINGS);
     }
   };
 
   const fetchPhotos = useCallback(async () => {
+    // Evitar múltiples fetches en un período corto
+    const now = Date.now();
+    if (now - lastFetchRef.current < 2000) return;
+    lastFetchRef.current = now;
+
     try {
       let query = supabase
         .from("uploads")
@@ -85,7 +75,22 @@ const CarouselPage = () => {
 
       const { data, error } = await query;
       if (error) throw error;
+
+      // Mantener el autoplay activo
+      const swiper = carouselRef.current?.swiper;
+      if (swiper?.autoplay?.running) {
+        swiper.autoplay.stop();
+      }
+
       setPhotos(data || []);
+
+      // Reiniciar el autoplay después de actualizar las fotos
+      setTimeout(() => {
+        if (swiper?.autoplay) {
+          swiper.autoplay.start();
+        }
+      }, 100);
+
     } catch (error) {
       console.error("Error fetching photos:", error);
     } finally {
@@ -94,33 +99,36 @@ const CarouselPage = () => {
   }, [settings?.photos_limit]);
 
   const triggerFlash = useCallback(() => {
-    if (settings.flash_enabled) {
+    if (settings?.flash_enabled) {
       setShowFlash(true);
       setTimeout(() => setShowFlash(false), 200);
     }
-  }, [settings.flash_enabled]);
+  }, [settings?.flash_enabled]);
 
   const createFloatingItem = useCallback(() => {
-    if (settings.emojis_enabled) {
+    if (settings?.emojis_enabled && settings?.selected_emojis) {
       const emojis = settings.selected_emojis
         .split(",")
         .filter((emoji) => emoji.trim());
-      const newItem = {
-        id: Date.now(),
-        emoji: emojis[Math.floor(Math.random() * emojis.length)].trim(),
-        left: `${Math.random() * 100}%`,
-        animationDuration: `${2 + Math.random() * 3}s`,
-        size: `${1.5 + Math.random() * 1}rem`,
-      };
 
-      setFloatingItems((prev) => [...prev, newItem]);
-      setTimeout(() => {
-        setFloatingItems((prev) =>
-          prev.filter((item) => item.id !== newItem.id)
-        );
-      }, parseFloat(newItem.animationDuration) * 1000);
+      if (emojis.length > 0) {
+        const newItem = {
+          id: Date.now(),
+          emoji: emojis[Math.floor(Math.random() * emojis.length)].trim(),
+          left: `${Math.random() * 100}%`,
+          animationDuration: `${2 + Math.random() * 3}s`,
+          size: `${1.5 + Math.random() * 1}rem`,
+        };
+
+        setFloatingItems((prev) => [...prev, newItem]);
+        setTimeout(() => {
+          setFloatingItems((prev) =>
+            prev.filter((item) => item.id !== newItem.id)
+          );
+        }, parseFloat(newItem.animationDuration) * 1000);
+      }
     }
-  }, [settings.emojis_enabled, settings.selected_emojis]);
+  }, [settings?.emojis_enabled, settings?.selected_emojis]);
 
   useEffect(() => {
     const disableScroll = () => {
@@ -146,8 +154,9 @@ const CarouselPage = () => {
     };
 
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () =>
+    return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
   }, []);
 
   useEffect(() => {
@@ -155,20 +164,18 @@ const CarouselPage = () => {
       fetchPhotos();
       const pollInterval = setInterval(fetchPhotos, 30000);
 
-      // Separar los intervalos para cada efecto
       const emojiInterval = setInterval(() => {
         if (Math.random() < 0.8) createFloatingItem();
       }, settings.emoji_interval || DEFAULT_SETTINGS.emoji_interval);
 
-      // Intervalo específico para el flash
       const flashInterval = setInterval(() => {
-        if (settings.flash_enabled) {
+        if (settings?.flash_enabled) {
           triggerFlash();
         }
       }, settings.flash_interval || DEFAULT_SETTINGS.flash_interval);
 
       const confettiInterval = setInterval(() => {
-        if (settings.confetti_enabled) {
+        if (settings?.confetti_enabled) {
           setConfettiActive(true);
           setTimeout(() => setConfettiActive(false), 5000);
         }
@@ -181,29 +188,28 @@ const CarouselPage = () => {
         clearInterval(confettiInterval);
       };
     }
-  }, [settings, fetchPhotos, createFloatingItem, triggerFlash]);
+  }, [
+    settings,
+    fetchPhotos,
+    createFloatingItem,
+    triggerFlash,
+  ]);
 
   useEffect(() => {
     const channel = supabase
       .channel("carousel-changes")
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "carousel_settings",
-        },
+        { event: "*", schema: "public", table: "carousel_settings" },
         () => fetchSettings()
       )
       .on(
         "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "uploads",
-          filter: "approved=eq.true",
-        },
-        () => fetchPhotos()
+        { event: "*", schema: "public", table: "uploads", filter: "approved=eq.true" },
+        () => {
+          // Agregar un pequeño retraso antes de fetchear las fotos
+          setTimeout(fetchPhotos, 500);
+        }
       )
       .subscribe();
 
@@ -265,32 +271,33 @@ const CarouselPage = () => {
       {/* Main Grid Layout */}
       <div className={styles.gridLayout}>
         <div className={styles.leftSection}>
-        <div className={styles.logoContainer}>
-  <Image
-    src="/images/logo.png"
-    alt="Real Meet 2024"
-    width={360}
-    height={80}
-    className="
-      w-[clamp(180px,15vw,220px)]
-      sm:w-[clamp(200px,18vw,240px)]
-      md:w-[clamp(220px,20vw,260px)]
-      lg:w-[clamp(240px,22vw,280px)]
-      xl:w-[clamp(260px,25vw,380px)]
-      2xl:w-[clamp(280px,30vw,380px)]
-      h-auto object-contain 
-      transition-transform duration-300
-      hover:scale-105
-    "
-    priority
-  />
-</div>
+          <div className={styles.logoContainer}>
+            <Image
+              src="/images/logo.png"
+              alt="Real Meet 2024"
+              width={360}
+              height={80}
+              className="
+                w-[clamp(180px,15vw,220px)]
+                sm:w-[clamp(200px,18vw,240px)]
+                md:w-[clamp(220px,20vw,260px)]
+                lg:w-[clamp(240px,22vw,280px)]
+                xl:w-[clamp(260px,25vw,380px)]
+                2xl:w-[clamp(280px,30vw,380px)]
+                h-auto object-contain 
+                transition-transform duration-300
+                hover:scale-105
+              "
+              priority
+            />
+          </div>
           <CommentBubble comment={currentComment} />
         </div>
 
         <div className={styles.centerSection}>
           <div className={styles.deviceWrapper}>
             <PolaroidCarousel
+              ref={carouselRef}
               photos={photos}
               onSlideChange={handleSlideChange}
               decorationType="TAPE_LIGHT"
@@ -298,10 +305,11 @@ const CarouselPage = () => {
             />
           </div>
         </div>
+
         <div className={styles.rightSection}>
           <div className="mt-4 lg:mt-8 xl:mt-16 w-full flex justify-center">
             <QRCode
-              size={window.innerWidth <= 1366 ? 200 : 280} // Tamaño condicional
+              size={window.innerWidth <= 1366 ? 200 : 280}
             />
           </div>
           <div className="w-full flex justify-center">
