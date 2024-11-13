@@ -13,12 +13,6 @@ const supabase = createClientComponentClient({
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true
-    },
-    global: {
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': '*/*'
-      }
     }
   }
 });
