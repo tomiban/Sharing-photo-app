@@ -286,7 +286,7 @@ const CarouselPage = () => {
                 h-auto object-contain 
                 transition-transform duration-300
                 hover:scale-105
-                rounded-xl
+                rounded-xl mb-8
               "
               priority
             />
