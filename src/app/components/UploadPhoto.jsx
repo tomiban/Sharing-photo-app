@@ -92,7 +92,7 @@ const UploadPhoto = () => {
       const imageUrl = publicUrlResult.data.publicUrl;
       const { error: insertError } = await supabase
         .from("uploads")
-        .insert([{ image_url: imageUrl, comment }]);
+        .insert([{ image_url: imageUrl, comment, approved: true }]);
 
       if (insertError) throw insertError;
 
