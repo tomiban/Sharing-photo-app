@@ -17,7 +17,7 @@ const compressionOptions = {
   maxWidthOrHeight: 1080,
   useWebWorker: true,
   initialQuality: 0.8, // Balance entre calidad y tamaño
-  alwaysKeepResolution: false
+  alwaysKeepResolution: false,
 };
 
 const UploadPhoto = () => {
@@ -26,7 +26,7 @@ const UploadPhoto = () => {
   const [comment, setComment] = useState("");
   const [uploading, setUploading] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  
+
   // Refs para mejor manejo de memoria
   const fileInputRef = useRef(null);
   const previewUrlRef = useRef(null);
@@ -48,7 +48,10 @@ const UploadPhoto = () => {
       setPreview(previewUrlRef.current);
 
       // Comprimir en segundo plano
-      const compressedFile = await imageCompression(selectedFile, compressionOptions);
+      const compressedFile = await imageCompression(
+        selectedFile,
+        compressionOptions
+      );
       setFile(compressedFile);
     } catch (error) {
       console.error("Error al procesar la imagen:", error);
@@ -81,7 +84,7 @@ const UploadPhoto = () => {
       // Subida paralela a storage y base de datos
       const [uploadResult, publicUrlResult] = await Promise.all([
         supabase.storage.from("photos").upload(fileName, file),
-        supabase.storage.from("photos").getPublicUrl(fileName)
+        supabase.storage.from("photos").getPublicUrl(fileName),
       ]);
 
       if (uploadResult.error) throw uploadResult.error;
@@ -105,7 +108,7 @@ const UploadPhoto = () => {
   }, [file, comment]);
 
   const onEmojiClick = useCallback((emojiObject) => {
-    setComment(prev => prev + emojiObject.emoji);
+    setComment((prev) => prev + emojiObject.emoji);
     setShowEmojiPicker(false);
   }, []);
 
@@ -114,11 +117,11 @@ const UploadPhoto = () => {
       <div className="flex-none flex justify-center">
         <div className="p-2 rounded-full">
           <Image
-            src="/images/logo.png"
+            src="/images/logo.jpg"
             width={100}
             height={100}
             alt="Logo"
-            className="object-contain"
+            className="object-contain rounded-xl"
             priority
           />
         </div>
@@ -172,63 +175,71 @@ const UploadPhoto = () => {
           </button>
         </div>
         <div className="flex-none h-[12%] relative">
-        <div className="relative w-full h-full flex items-center">
-          <textarea
-            value={comment}
-            onChange={(e) => {
-              if (e.target.value.length <= 180) {
-                setComment(e.target.value);
-              }
-            }}
-            maxLength={180}
-            placeholder="Agrega un comentario..."
-            className="w-full h-full p-3 pr-12 bg-purple-800/20 backdrop-blur-md text-white placeholder-white/50 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/25 transition-all hover:bg-purple-800/30 focus:bg-purple-800/30"
-          />
-          <button
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-            className="absolute right-3 bottom-3 p-2 text-white/80 hover:text-white transition-colors"
-            type="button"
-          >
-            <BsEmojiSmile className="w-5 h-5" />
-          </button>
-        </div>
+          <div className="relative w-full h-full flex items-center">
+            <textarea
+              value={comment}
+              onChange={(e) => {
+                if (e.target.value.length <= 180) {
+                  setComment(e.target.value);
+                }
+              }}
+              maxLength={180}
+              placeholder="Agrega un comentario..."
+              className="w-full h-full p-3 pr-12 bg-purple-800/20 backdrop-blur-md text-white placeholder-white/50 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/25 transition-all hover:bg-purple-800/30 focus:bg-purple-800/30"
+            />
+            <button
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              className="absolute right-3 bottom-3 p-2 text-white/80 hover:text-white transition-colors"
+              type="button"
+            >
+              <BsEmojiSmile className="w-5 h-5" />
+            </button>
+          </div>
 
-        {showEmojiPicker && (
-          <div className="fixed inset-x-0 bottom-0 z-50 pb-safe">
-            <div className="relative">
-              <div className="flex items-center justify-between px-4 py-2 bg-purple-900/95 border-b border-white/10 backdrop-blur-md">
-                <span className="text-white/90 text-sm font-medium">Emojis</span>
-                <button
-                  onClick={() => setShowEmojiPicker(false)}
-                  className="p-2 text-white/80 hover:text-white"
-                >
-                  <FaTimes className="w-4 h-4" />
-                </button>
+          {showEmojiPicker && (
+            <div className="fixed inset-x-0 bottom-0 z-50 pb-safe">
+              <div className="relative">
+                <div className="flex items-center justify-between px-4 py-2 bg-purple-900/95 border-b border-white/10 backdrop-blur-md">
+                  <span className="text-white/90 text-sm font-medium">
+                    Emojis
+                  </span>
+                  <button
+                    onClick={() => setShowEmojiPicker(false)}
+                    className="p-2 text-white/80 hover:text-white"
+                  >
+                    <FaTimes className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <EmojiPicker
+                  onEmojiClick={onEmojiClick}
+                  width="100%"
+                  height={300}
+                  theme="dark"
+                  skinTonesDisabled
+                  searchDisabled
+                  lazyLoadEmojis
+                  previewConfig={{
+                    showPreview: false,
+                  }}
+                  categories={[
+                    "smileys_people",
+                    "animals_nature",
+                    "food_drink",
+                    "objects",
+                    "symbols",
+                    "flags",
+                  ]}
+                />
               </div>
 
-              <EmojiPicker
-                onEmojiClick={onEmojiClick}
-                width="100%"
-                height={300}
-                theme="dark"
-                skinTonesDisabled
-                searchDisabled
-                lazyLoadEmojis
-                previewConfig={{
-                  showPreview: false
-                }}
-                categories={['smileys_people', 'animals_nature', 'food_drink', 'objects', 'symbols', 'flags']}
+              <div
+                className="fixed inset-0 bg-black/40 -z-10"
+                onClick={() => setShowEmojiPicker(false)}
               />
             </div>
-            
-     
-            <div 
-              className="fixed inset-0 bg-black/40 -z-10"
-              onClick={() => setShowEmojiPicker(false)}
-            />
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
         <div className="flex-none mb-4">
           <motion.button

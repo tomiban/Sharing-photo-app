@@ -42,9 +42,9 @@ const CarouselPage = () => {
       const { data, error } = await supabase
         .from("carousel_settings")
         .select()
-        .eq('id', UUID)
+        .eq("id", UUID)
         .maybeSingle();
-      
+
       if (error || !data) {
         console.error("Error porque no tengo data:", error);
         setSettings(DEFAULT_SETTINGS);
@@ -90,7 +90,6 @@ const CarouselPage = () => {
           swiper.autoplay.start();
         }
       }, 100);
-
     } catch (error) {
       console.error("Error fetching photos:", error);
     } finally {
@@ -188,12 +187,7 @@ const CarouselPage = () => {
         clearInterval(confettiInterval);
       };
     }
-  }, [
-    settings,
-    fetchPhotos,
-    createFloatingItem,
-    triggerFlash,
-  ]);
+  }, [settings, fetchPhotos, createFloatingItem, triggerFlash]);
 
   useEffect(() => {
     const channel = supabase
@@ -205,7 +199,12 @@ const CarouselPage = () => {
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "uploads", filter: "approved=eq.true" },
+        {
+          event: "*",
+          schema: "public",
+          table: "uploads",
+          filter: "approved=eq.true",
+        },
         () => {
           // Agregar un pequeño retraso antes de fetchear las fotos
           setTimeout(fetchPhotos, 500);
@@ -273,20 +272,21 @@ const CarouselPage = () => {
         <div className={styles.leftSection}>
           <div className={styles.logoContainer}>
             <Image
-              src="/images/logo.png"
+              src="/images/logo.jpg"
               alt="Real Meet 2024"
-              width={360}
+              width={250}
               height={80}
               className="
                 w-[clamp(180px,15vw,220px)]
-                sm:w-[clamp(200px,18vw,240px)]
+                sm:w-[clamp(180px,15vw,220px)]
                 md:w-[clamp(220px,20vw,260px)]
-                lg:w-[clamp(240px,22vw,280px)]
-                xl:w-[clamp(260px,25vw,380px)]
-                2xl:w-[clamp(280px,30vw,380px)]
+                lg:w-[clamp(180px,14vw,240px)]
+                xl:w-[clamp(200px,16vw,300px)]
+                2xl:w-[clamp(220px,17vw,320px)]
                 h-auto object-contain 
                 transition-transform duration-300
                 hover:scale-105
+                rounded-xl
               "
               priority
             />
@@ -308,9 +308,7 @@ const CarouselPage = () => {
 
         <div className={styles.rightSection}>
           <div className="mt-4 lg:mt-8 xl:mt-16 w-full flex justify-center">
-            <QRCode
-              size={window.innerWidth <= 1366 ? 200 : 280}
-            />
+            <QRCode size={window.innerWidth <= 1366 ? 200 : 280} />
           </div>
           <div className="w-full flex justify-center">
             <Image
@@ -318,7 +316,7 @@ const CarouselPage = () => {
               alt="Logo empresa"
               width={window.innerWidth <= 1366 ? 180 : 260}
               height={window.innerWidth <= 1366 ? 100 : 150}
-              className="object-contain opacity-90 hover:opacity-100 transition-opacity"
+              className="object-contain opacity-90 hover:opacity-100 transition-opacity hidden"
               priority
             />
           </div>
